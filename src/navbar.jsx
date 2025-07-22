@@ -2,6 +2,7 @@ import { useState } from "react";
 import logo from "./assets/logo.png";
 import "./navbarAndFooter.css";
 import hamburger from "./assets/hamburger.png";
+import { useNavigate } from "react-router-dom";
 
 export const Navbar = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
@@ -24,9 +25,7 @@ export const Navbar = () => {
               />
             </li>
             <li>
-              <a href="#">
-                <img className="logo" src={logo} alt="Logo" />
-              </a>
+                <img className="logo" src={logo} alt="Logo" onClick={() => useNavigate('/')}/>
             </li>
             <li>
               <a href="#" className="shopName">
