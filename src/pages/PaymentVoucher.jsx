@@ -492,14 +492,14 @@ function PaymentVoucher() {
         </select>
         <label htmlFor="receive">Received by:</label>
           <input type="text" name="Received_By" className="receive"
-            onChange={(e) => handleChanges(e)} required />
+            onChange={(e) => handleChanges(e)} value={values.Received_By} required />
         </div>
 
 
         <div className="fill-container">
         <label htmlFor="paid">Paid By: <span className='treasurer'>*Treasurer</span></label>
         <input type="text" name="Paid_By" className="paid"
-        onChange={(e) => handleChanges(e)} required />
+        onChange={(e) => handleChanges(e)} value={values.Paid_By} required />
         <label htmlFor="receive">SI No:</label>
           <input type="text" name="SI_NO" className="sino" value={values.SI_NO}
             onChange={(e) => handleChanges(e)} required disabled/>
