@@ -109,9 +109,21 @@ function PaymentVoucher() {
     if(index != 1){
       setSelectedPayee(payee[index]);
       setSelectedTotalAmnt(totalAmnt[index]);
+      setValues((prev) => ({
+        ...prev,
+        RFP_NO: selectedValue,
+        Name: payee[index],
+        Amount: totalAmnt[index]
+      }));
     }else{
       setSelectedPayee('');
       setSelectedTotalAmnt('');
+      setValues((prev) => ({
+        ...prev,
+        RFP_NO: '',
+        Name: '',
+        Amount: ''
+      }));
     }
   }
 
