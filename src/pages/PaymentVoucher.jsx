@@ -270,7 +270,7 @@ function PaymentVoucher() {
   };
 
   const resetForm = (generatedPVNo, generatedSINo) => {
-    setValues({
+   setValues({
       Name: "",
       PV_NO: generatedPVNo,
       Amount: "",
@@ -282,24 +282,24 @@ function PaymentVoucher() {
       SI_NO: generatedSINo,
       PV_Status: "Forwarded"
     });
-  
-    setValues2([
-      {
-        Account_ID: "",
-        Account_Name: "",
-        Debit_Amount: "",
-        Credit_Amount: "",
-        Check_No: "",
-        Check_Amount: "",
-        Recorded_By: "Barry Simmons", //reset to default
-        Date_Recorded: ""
-      }
-    ]);
+
+  setValues2([
+    {
+      Account_ID: "",
+      Account_Name: "",
+      Debit_Amount: "",
+      Credit_Amount: "",
+      Check_No: "",
+      Check_Amount: "",
+      Recorded_By: "Barry Simmons", //reset to default
+      Date_Recorded: ""
+    }
+  ]);
 
     setSelectedRFP("");
     setSelectedPayee("");
     setSelectedTotalAmnt("");
-  };
+};
   
 
   const generateTableForPrint = () => {
