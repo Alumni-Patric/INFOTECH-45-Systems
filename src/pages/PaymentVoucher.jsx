@@ -4,12 +4,14 @@ import React, { useState, useEffect } from 'react';
 import '../payment-voucher-css/App.css';
 import { doc, setDoc, getDocs, collection} from "firebase/firestore"; // Import setDoc and doc
 import { firestore} from "../firebase.js";
+import { useNavigate } from 'react-router-dom';
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import Navbar from '../NewNavbar&Footer/navbar';
 import Footer from '../NewNavbar&Footer/footer';
 
 function PaymentVoucher() {
   const [collectionName] = useState("Payment Voucher"); // Define collection name
+  const navigate = useNavigate();
 
   const formattedPVNo = () => {
     const dynamicNumber = () => {
@@ -608,7 +610,7 @@ function PaymentVoucher() {
 
         <hr></hr>
 
-        <button type="button" className="cancel-button">Cancel</button>
+        <button type="button" className="cancel-button" onClick={() => navigate('/')}>Cancel</button>
         <button type="submit" className="save-button">Save</button>
         <button type="submit" className="save-button" onClick={generateTableForPrint} >Print</button>
       </form>
