@@ -159,7 +159,7 @@ function PaymentVoucher() {
     Credit_Amount: "",
     Check_No:"",
     Check_Amount:"",
-    Recorded_By: "",
+    Recorded_By: "Barry Simmons",
     Date_Recorded: ""
     }
   ]);
@@ -588,10 +588,10 @@ function PaymentVoucher() {
 
         <div className="recorded-container">
         <label htmlFor="recorded">Recorded By:</label>
-        <select name="Recorded_By" id="recorded" className="recorded" onChange={(e) => handleChanges2(e)}>
-          <option value="option1">Barry Simmons</option>
-          <option value="option2">Larry Smith</option>
-          <option value="option3">Lucy Parrot</option>
+        <select name="Recorded_By" id="recorded" className="recorded" value={values2[0].Recorded_By} onChange={(e) => handleChanges2(e)}>
+          <option value="Barry Simmons">Barry Simmons</option>
+          <option value="Larry Smith">Larry Smith</option>
+          <option value="Lucy Parrot">Lucy Parrot</option>
         </select>
         <label htmlFor="daterec">Date Recorded:</label>
         <input type="date" name="Date_Recorded" className="daterec"
