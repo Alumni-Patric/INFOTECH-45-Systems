@@ -1,0 +1,129 @@
+.psui-container
+{
+    min-height: 650px;
+    color: black;
+    margin-top: 100px;
+    margin-bottom: 25px;
+    margin-right: 60px;
+    margin-left: 50px;
+    padding: 25px;
+
+}
+.psui-h2{
+    padding: 0;
+    margin: 0;
+    font-size: 36px;
+}
+.psui-small-desc{
+    color: #797979;
+    font-size: 16px;
+}
+.topbar{
+    display: flex;
+    justify-content: space-between;
+}
+.topbar-left{
+    flex: 1;
+}
+.topbar-right{
+    flex: 1;
+    justify-content: end;
+    align-items: center;
+    display: flex;
+    gap: 8px;
+}
+.topbar-right input{
+    width: 400px;
+    height: 40px;
+    padding: 15px;
+    border: 1px solid black;
+    border-radius: 100px;
+    border-color: black;
+    font-size: 16px;
+}
+
+.psui-topbar-button{
+    background-color: #022073;
+    color: white;
+    border-radius: 100px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.psui-topbar-button:hover{
+    background-color: #3e63cb;
+    color: white;
+    border-radius: 100px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.psui-content table{
+    margin-top: 3rem;
+    width: 100%;
+    text-align: center;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+.psui-content table .header-row{
+    height: 67px;
+    background-color:#F6F9F8;
+    color: #797979;
+}
+.psui-content table .content-row{
+    height: 67px;
+    color: black;
+}
+.header-row .psui-header-label, .content-row .psui-content-label{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 16px;
+}
+.psui-header-label{
+    color: #797979;
+    font-weight: 400;
+}
+.psui-content-label{
+    color: black;
+    font-weight: 600;
+}
+.header-row input, .content-row input{
+    height: 16px;
+    width: 16px;
+}
+.header-row th{
+    font-weight: 400;
+    padding: 8px;
+}
+.content-row td{
+    padding: 8px;
+    border-bottom: 1px solid #E8E8E8;
+}
+
+/*Status colors*/
+.status-overdue{
+    color: red;
+}
+.status-pending{
+    color: orange;
+}
+.status-paid{
+    color:green;
+}
+
+/* View Payslip link css*/
+.view-payslip-link{
+    color: #2A03A9;
+    text-decoration: underline;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+

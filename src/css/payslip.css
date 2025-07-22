@@ -1,0 +1,91 @@
+
+/* Payslip Container */
+.payslip-container {
+  max-width: 700px;
+  background: white;
+  padding: 20px;
+  margin-top: 5%;
+  margin-left:27%;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 0.7px solid #333;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+.payslip-header {
+  text-align: center;
+  border-bottom: 2px solid #333;
+  padding-bottom: 10px;
+}
+
+.payslip-header h1 {
+  font-size: 20px !important;
+  margin-bottom: 5px !important;
+  color: #333;
+  background-color: white;
+}
+
+.payslip-header p {
+  font-size: 14px;
+  color: #555;
+}
+
+.payslip-header h2 {
+  background-color: #2c3e50;
+  color: white;
+  padding: 8px;
+  margin-top: 10px;
+  margin-left: 0;
+  font-size: 16px;
+  border-radius: 4px;
+}
+
+/* Employee Details */
+.employee-details {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 0;
+}
+
+.employee-details p {
+  margin: 5px 0;
+}
+
+/* Table Styles */
+.table-container {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.table-header {
+  background: #2c3e50;
+  color: white;
+  padding: 10px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.table-row {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+  background: #fff;
+}
+
+.table-footer {
+  background: #f8f8f8;
+  padding: 10px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Net Salary Section */
+.net-salary {
+  text-align: right;
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 15px;
+}
