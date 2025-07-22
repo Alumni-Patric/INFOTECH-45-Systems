@@ -291,10 +291,14 @@ function PaymentVoucher() {
         Credit_Amount: "",
         Check_No: "",
         Check_Amount: "",
-        Recorded_By: "",
+        Recorded_By: "Barry Simmons", //reset to default
         Date_Recorded: ""
       }
     ]);
+
+    setSelectedRFP("");
+    setSelectedPayee("");
+    setSelectedTotalAmnt("");
   };
   
 
