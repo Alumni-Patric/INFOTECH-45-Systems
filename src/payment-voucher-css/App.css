@@ -26,12 +26,12 @@ body {
   padding: 10px;
 }
 
-h1 {
+/* h1 {
   font-size: x-large;
   color: white;
   background-color: #263146;
   margin-left: 5%;
-}
+} */
 
 h2 {
   font-size: 20px;
@@ -84,11 +84,11 @@ textarea {
   min-height: 100px;
   max-height: 150px;
 }
-
+/* 
 button:hover {
   background-color: #283444;
   color: white
-}
+} */
 
 .go-back-button {
   padding:10px 15px;
