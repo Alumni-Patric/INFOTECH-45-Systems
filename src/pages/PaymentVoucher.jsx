@@ -108,7 +108,7 @@ function PaymentVoucher() {
 
     const index = attributes.findIndex((rfp) => rfp === selectedValue);
 
-    if(index != 1){
+    if(index != 1){ 
       setSelectedPayee(payee[index]);
       setSelectedTotalAmnt(totalAmnt[index]);
       setValues((prev) => ({
