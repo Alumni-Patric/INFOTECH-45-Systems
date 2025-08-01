@@ -18,7 +18,7 @@ const PVHomePage = () => {
                 <h1>Welcome to the Payment System</h1>
                 <p>Please select a page to proceed:</p>
                 <div style={{ marginTop: '20px' }}>
-                    <button
+                    <button 
                         style={{
                             padding: '10px 20px',
                             margin: '10px',
@@ -26,7 +26,7 @@ const PVHomePage = () => {
                             cursor: 'pointer',
                             borderRadius: '15px',
                         }}
-                        onClick={() => handleNavigation('/payment-voucher')}
+                        onClick={() => handleNavigation('/payment-voucher-table')}
                     >
                         Payment Voucher Page
                     </button>
