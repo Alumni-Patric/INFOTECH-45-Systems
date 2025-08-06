@@ -1,11 +1,11 @@
 App.css
-body {
+/* body {
   background: white;
   display: flex;
   justify-content: center;
   padding: 50px 20px; /* top-bottom and left-right padding */
-  box-sizing: border-box;
-}
+  /*box-sizing: border-box;
+} */
 
 .container {
   width: 100%;
@@ -33,7 +33,7 @@ body {
   margin-left: 5%;
 } */
 
-h2 {
+/* h2 {
   font-size: 20px;
   font-weight: 700;
   margin-left: 50px;
@@ -41,9 +41,9 @@ h2 {
   margin-bottom: 30px;
   letter-spacing: -1.0px;
   
-}
+} */
 
-label {
+/* label {
   font-size: 15px;
   width: 100%;
   margin-top: 8px;
@@ -51,9 +51,9 @@ label {
   text-align: left;
   color: #555;
   font-weight: bold;
-}
+} */
 
-input {
+/* input {
   display: flex;
   width: 5%;
   padding: 8px;
@@ -61,9 +61,9 @@ input {
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 12px;
-}
+} */
 
-input[type="radio"] {
+/* input[type="radio"] {
   display: inline;
   width: 2%;
 }
@@ -83,14 +83,14 @@ textarea {
   width: 20%;
   min-height: 100px;
   max-height: 150px;
-}
+} */
 /* 
 button:hover {
   background-color: #283444;
   color: white
 } */
 
-.go-back-button {
+/* .go-back-button {
   padding:10px 15px;
   border-radius: 50px;
   margin-top: 30px;
@@ -321,9 +321,9 @@ button:hover {
   margin-top: -5px;
   color: black;
   font-weight:600;
-  letter-spacing: -1px;
+  letter-spacing: -1px; */
   /* line-height: 35px; */
-}
+/* }
 
 .account-container input {
   color: black;
@@ -348,7 +348,7 @@ button:hover {
   letter-spacing: -1px;
   /* margin-bottom: 10px; */
   /* line-height: 35px; */
-}
+/*}
 
 .check-container input {
   color: black;
@@ -407,9 +407,9 @@ button:hover {
   margin-left: 100px;
   letter-spacing: -1.7px;
   margin-top: 20px;
-  margin-bottom: 10px;
+  margin-bottom: 10px;*/
   /* line-height: 35px; */
-}
+/*}
 
 .recorded-container label {
   width: 100px;
@@ -451,14 +451,14 @@ button:hover {
 hr {
   border: none;
   border-top: 1px solid #ccc; /* light grey line */
-  width: 90%;                 /* shorter width */
-  margin: 2rem auto;          
+  /*width: 90%;*/                 /* shorter width */
+  /*margin: 2rem auto;*/          
   /* centered and with vertical spacing */
-}
+/*}
 
 
 .treasurer{
   color: #818181;
   font-style: italic;
 
-}
+} */

@@ -2,100 +2,309 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../NewNavbar&Footer/navbar.jsx";
 import Footer from "../NewNavbar&Footer/footer.jsx";
 import { Link } from "react-router-dom";
-import "../css/psui.css";
-import { getDocs, collection} from "firebase/firestore"; // Import setDoc and doc
-import { firestore} from "../firebase.js";
+import { getDocs, collection, onSnapshot } from "firebase/firestore"; // Import setDoc and doc
+import { firestore } from "../firebase.js";
 
 
 function PayslipUI() {
     const [payslips, setPayslips] = useState([]);
     const [search, setSearch] = useState("");
+    const [showModal, setShowModal] = useState(false);
+    const [selectedPayslip, setSelectedPayslip] = useState(null);
+    const [filePath, setFilePath] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [signatureFilter, setSignatureFilter] = useState("all");
 
     useEffect(() => {
-        const fetchPayslips = async () => {
-            const payslipList = await getDocs(collection(firestore,"Payslip"));
-            const dataList = payslipList.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setPayslips(dataList);
-        };
-        fetchPayslips();
+        setIsLoading(true);
+
+        // Set up real-time listener for payslips
+        const unsubscribe = onSnapshot(
+            collection(firestore, "Payslip"),
+            (snapshot) => {
+                const dataList = snapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                setPayslips(dataList);
+                setIsLoading(false);
+            },
+            (error) => {
+                console.error("Error fetching payslips:", error);
+                setPayslips([]);
+                setIsLoading(false);
+            }
+        );
+
+        // Cleanup function to unsubscribe when component unmounts
+        return () => unsubscribe();
     }, []);
 
-    const filteredPayslips = payslips.filter(p =>
-        p.employeeName?.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredPayslips = payslips
+        .filter(p => p.employeeName?.toLowerCase().includes(search.toLowerCase()))
+        .filter(p => {
+            // Status filter
+            if (statusFilter !== "all" && p.status !== statusFilter) {
+                return false;
+            }
+            // Signature filter
+            if (signatureFilter === "hasSignature" && !p.filePath) {
+                return false;
+            }
+            if (signatureFilter === "noSignature" && p.filePath) {
+                return false;
+            }
+            return true;
+        })
+        .sort((a, b) => {
+            // Sort by creation timestamp if available, otherwise by ID (newest first)
+            if (a.createdAt && b.createdAt) {
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            }
+            // If no timestamp, sort by ID (assuming newer IDs are created later)
+            return b.id.localeCompare(a.id);
+        });
+
+    const openModal = (payslip) => {
+        setSelectedPayslip(payslip);
+        setFilePath(payslip.filePath || "");
+        setShowModal(true);
+    };
+
+    const closeModal = () => {
+        setShowModal(false);
+        setSelectedPayslip(null);
+        setFilePath("");
+    };
+
+    const handleSave = () => {
+        if (selectedPayslip && filePath.trim()) {
+            const updatedPayslips = payslips.map(p =>
+                p.id === selectedPayslip.id
+                    ? { ...p, filePath: filePath.trim() }
+                    : p
+            );
+            setPayslips(updatedPayslips);
+        }
+        closeModal();
+    };
 
     return (
         <>
             <Navbar />
-            <div className="psui-container">
-                <div className="topbar">
-                    <div className="topbar-left">
-                        <h2 className="psui-h2">Payslip</h2>
-                        <span className="psui-small-desc">Detailed records of employment earnings and deductions</span>
+            <div className="min-h-[650px] text-black mx-10 p-6">
+                <div className="flex justify-between">
+                    <div className="flex-1">
+                        <h2 className="p-0 m-0 text-[36px]">Payslip</h2>
+                        <span className="text-[#797979] text-base">Detailed records of employment earnings and deductions</span>
                     </div>
-                    <div className="topbar-right">
+                    <div className="flex-1 flex justify-end items-center gap-4">
                         <Link to="/payslip-form">
-                            <button className="psui-topbar-button">
+                            <button className="bg-[#022073] text-white rounded-full py-2.5 px-5 text-base font-semibold border-none cursor-pointer hover:bg-[#3e63cb] transition-colors whitespace-nowrap flex-shrink-0">
                                 Go to Payslip Form
                             </button>
                         </Link>
-                        <input
-                            className="searchbar"
-                            placeholder="Search"
-                            type="text"
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                        />
+                        <div className="flex items-center gap-3 w-full max-w-[800px] min-w-0">
+                            {/* Status Filter */}
+                            <div className="relative w-[140px] cursor-pointer">
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    className="h-10 pl-10 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-[#022073] focus:ring-2 focus:ring-[#022073]/20 bg-white w-full appearance-none cursor-pointer"
+                                >
+                                    <option value="all">All Status</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Paid">Paid</option>
+                                    <option value="Overdue">Overdue</option>
+                                </select>
+                                <svg
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#022073]"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                                    />
+                                </svg>
+                            </div>
+
+                            {/* Signature Filter */}
+                            <div className="relative w-[180px] cursor-pointer">
+                                <select
+                                    value={signatureFilter}
+                                    onChange={(e) => setSignatureFilter(e.target.value)}
+                                    className="h-10 pl-10 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-[#022073] focus:ring-2 focus:ring-[#022073]/20 bg-white w-full appearance-none cursor-pointer"
+                                >
+                                    <option value="all">All Signatures</option>
+                                    <option value="hasSignature">Has Signature</option>
+                                    <option value="noSignature">No Signature</option>
+                                </select>
+                                <svg
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#022073]"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                    />
+                                </svg>
+
+                            </div>
+
+                            {/* Search */}
+                            <div className="relative flex-1 min-w-[200px]">
+                                <input
+                                    className="w-full h-10 pl-12 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-[#022073] focus:ring-2 focus:ring-[#022073]/20 bg-white"
+                                    placeholder="Search by name..."
+                                    type="text"
+                                    value={search}
+                                    onChange={e => setSearch(e.target.value)}
+                                />
+                                <svg
+                                    className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#022073]"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    />
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className="psui-content">
-                    <table>
-                        <thead>
-                            <tr className="header-row">
-                                <th>
-                                    <label className="psui-header-label">
-                                        <input type="checkbox" id="select-all" />
-                                        <span>Name</span>
-                                    </label>
-                                </th>
-                                <th>Department</th>
-                                <th>Payment Date</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredPayslips.map((payslip) => (
-                                <tr className="content-row" key={payslip.id}>
-                                    <td>
-                                        <label className="psui-content-label">
-                                            <input type="checkbox" className="row-checkbox" />
-                                            <span>{payslip.employeeName}</span>
-                                        </label>
-                                    </td>
-                                    <td>{payslip.designation}</td>
-                                    <td>{payslip.paymentDate}</td>
-                                    <td className={
-                                        payslip.status === "Paid"
-                                            ? "status-paid"
-                                            : payslip.status === "Overdue"
-                                            ? "status-overdue"
-                                            : "status-pending"
-                                    }>
-                                        {payslip.status}
-                                    </td>
-                                    <td className="view-payslip-link">
-                                        <Link to={`/payslip/${payslip.id}`}>View Payslip</Link>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="mt-12">
+                    <div className="border border-[#E8E8E8] rounded-lg overflow-hidden">
+                        {/* Fixed Header Table */}
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-center border-collapse border-spacing-0">
+                                <thead>
+                                    <tr className="h-[67px] bg-[#F6F9F8] text-[#797979]">
+                                        <th className="font-normal p-2 min-w-[200px]">
+                                            <label className="inline-flex items-center gap-1.5 text-base text-[#797979] font-normal">
+                                                <input type="checkbox" id="select-all" className="h-4 w-4" />
+                                                <span>Name</span>
+                                            </label>
+                                        </th>
+                                        <th className="font-normal p-2 min-w-[150px]">Department</th>
+                                        <th className="font-normal p-2 min-w-[150px]">Payment Date</th>
+                                        <th className="font-normal p-2 min-w-[100px]">Status</th>
+                                        <th className="font-normal p-2 min-w-[120px]">Action</th>
+                                        <th className="font-normal p-2 min-w-[150px]">Signature</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+
+                        {/* Scrollable Body */}
+                        <div className="overflow-y-auto max-h-[500px]">
+                            {isLoading ? (
+                                <div className="flex items-center justify-center h-64">
+                                    <div className="flex flex-col items-center space-y-4">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#022073]"></div>
+                                        <p className="text-gray-600 text-lg">Loading payslips...</p>
+                                    </div>
+                                </div>
+                            ) : filteredPayslips.length === 0 ? (
+                                <div className="flex items-center justify-center h-64">
+                                    <div className="text-center">
+                                        <p className="text-gray-500 text-lg">No payslips found</p>
+                                        <p className="text-gray-400 text-sm mt-2">Create your first payslip using the form above</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <table className="w-full text-center border-collapse border-spacing-0">
+                                    <tbody>
+                                        {filteredPayslips.map((payslip) => (
+                                            <tr className="h-[67px] text-black hover:bg-gray-50" key={payslip.id}>
+                                                <td className="p-2 border-b border-[#E8E8E8] min-w-[200px]">
+                                                    <label className="inline-flex items-center gap-1.5 text-base text-black font-semibold">
+                                                        <input type="checkbox" className="h-4 w-4" />
+                                                        <span>{payslip.employeeName}</span>
+                                                    </label>
+                                                </td>
+                                                <td className="p-2 border-b border-[#E8E8E8] min-w-[150px]">{payslip.designation}</td>
+                                                <td className="p-2 border-b border-[#E8E8E8] min-w-[150px]">{payslip.paymentDate}</td>
+                                                <td className={`p-2 border-b border-[#E8E8E8] min-w-[100px] ${payslip.status === "Paid"
+                                                    ? "text-green-600"
+                                                    : payslip.status === "Overdue"
+                                                        ? "text-red-600"
+                                                        : "text-orange-500"
+                                                    }`}>
+                                                    {payslip.status}
+                                                </td>
+                                                <td className="p-2 border-b border-[#E8E8E8] min-w-[120px]">
+                                                    <Link to={`/payslip/${payslip.id}`} className="text-[#2A03A9] underline font-semibold cursor-pointer">
+                                                        View Payslip
+                                                    </Link>
+                                                </td>
+                                                <td className="p-2 border-b border-[#E8E8E8] min-w-[150px]">
+                                                    <button
+                                                        className="bg-[#022073] text-white border-none rounded px-4 py-2 text-sm font-medium cursor-pointer transition-colors hover:bg-[#3e63cb]"
+                                                        onClick={() => openModal(payslip)}
+                                                    >
+                                                        {payslip.filePath ? "Edit Signature" : "Add Signature"}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            {/* File Path Modal */}
+            {showModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[1000]" onClick={closeModal}>
+                    <div className="bg-white rounded-lg w-[90%] max-w-[500px] shadow-lg" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-center p-5 pb-6 border-b border-[#E8E8E8]">
+                            <h3 className="m-0 text-lg font-semibold text-[#333]">File Path Upload</h3>
+                            <button className="bg-none border-none text-2xl cursor-pointer text-[#666] p-0 w-8 h-8 flex items-center justify-center hover:text-[#333]" onClick={closeModal}>×</button>
+                        </div>
+                        <div className="p-6">
+                            <div className="mb-5">
+                                <label htmlFor="filePathInput" className="block mb-2 font-medium text-[#333]">File Path:</label>
+                                <input
+                                    type="text"
+                                    id="filePathInput"
+                                    className="w-full h-10 px-3 py-2 border border-[#E8E8E8] rounded text-sm box-border focus:outline-none focus:border-[#022073] focus:shadow-[0_0_0_2px_rgba(2,32,115,0.1)]"
+                                    placeholder="Enter file path"
+                                    value={filePath}
+                                    onChange={(e) => setFilePath(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-3 p-5 pt-6 border-t border-[#E8E8E8]">
+                            <button className="py-2.5 px-5 rounded text-sm font-medium cursor-pointer border-none transition-colors bg-[#f5f5f5] text-[#333] hover:bg-[#e8e8e8]" onClick={closeModal}>
+                                Cancel
+                            </button>
+                            <button className="py-2.5 px-5 rounded text-sm font-medium cursor-pointer border-none transition-colors bg-[#022073] text-white hover:bg-[#3e63cb]" onClick={handleSave}>
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <Footer />
         </>
     );

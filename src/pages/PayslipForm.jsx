@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Navbar from "../NewNavbar&Footer/navbar.jsx";
-import { collection, setDoc,getDocs, doc } from "firebase/firestore";
+import { collection, setDoc, getDocs, doc } from "firebase/firestore";
 import { firestore } from "../firebase.js";
+import toast, { Toaster } from 'react-hot-toast';
 
 const PayslipForm = () => {
     const [employeeName, setEmployeeName] = useState("");
@@ -30,24 +31,29 @@ const PayslipForm = () => {
     const netPay = totalPay + (parseFloat(honorarium) || 0) + (parseFloat(allowance) || 0);
 
     const isFormValid =
-        parseFloat(basicPay) > 0 ||
-        calculateTotal(statutoryDeductions) > 0 ||
-        calculateTotal(otherDeductions) > 0 ||
-        parseFloat(honorarium) > 0 ||
-        parseFloat(allowance) > 0;
+        employeeName.trim() !== "" &&
+        employeeId.trim() !== "" &&
+        designation.trim() !== "" &&
+        dateOfJoining !== "" &&
+        salaryMonth !== "" &&
+        parseFloat(basicPay) > 0 &&
+        paymentDate !== "";
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!isFormValid) {
-            alert("Please fill in at least one field before submitting.");
+            toast.error("Please fill in all required fields before submitting.");
             return;
         }
+
+        const loadingToast = toast.loading('Saving payslip...');
+
         try {
             // Reference to the 'Payment Voucher' collection
             const payslipCollection = collection(firestore, "Payslip");
             // Fetch all documents in the collection
             const snapshot = await getDocs(payslipCollection);
-            
+
             // Calculate the next document number dynamically
             const existingIds = snapshot.docs.map((doc) => parseInt(doc.id.split('-')[1], 10)).filter((id) => !isNaN(id));
             const nextId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
@@ -69,105 +75,141 @@ const PayslipForm = () => {
                 netPay,
                 paymentDate: paymentDate || "",
                 status: "Pending",
+                createdAt: new Date().toISOString(),
+                timestamp: new Date(),
             });
-    
-            alert("Payslip saved!");
+
+            toast.dismiss(loadingToast);
+            toast.success("Payslip saved successfully!");
+
+            // Clear all form fields
+            setEmployeeName("");
+            setEmployeeId("");
+            setDesignation("");
+            setDateOfJoining("");
+            setSalaryMonth("");
+            setBasicPay(0);
+            setStatutoryDeductions([]);
+            setOtherDeductions([]);
+            setHonorarium(0);
+            setAllowance(0);
+            setPaymentDate("");
+
+            // Scroll to top after a short delay to ensure DOM has updated
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
         } catch (err) {
-            alert("Error saving payslip: " + err.message);
+            toast.dismiss(loadingToast);
+            toast.error("Error saving payslip: " + err.message);
         }
     };
-
-    const formStyle = {
-        maxWidth: "600px",
-        margin: "auto",
-        marginTop: "40px",
-        padding: "20px",
-        border: "1px solid #ccc",
-        borderRadius: "8px",
-        backgroundColor: "#f9f9f9",
-    };
-
-    const labelStyle = { fontWeight: "bold", display: "block", marginBottom: "5px" };
-    const inputStyle = { width: "100%", padding: "8px", marginBottom: "15px", borderRadius: "4px", border: "1px solid #ccc" };
-    const rowStyle = { display: "flex", gap: "10px", marginBottom: "10px" };
-    const btnStyle = { padding: "10px 20px", marginRight: "10px", border: "none", borderRadius: "4px", cursor: "pointer", backgroundColor: "#007bff", color: "#fff" };
 
     return (
         <>
             <Navbar />
-            <div style={{ padding: "40px" }}>
-                
-                <form onSubmit={handleSubmit} style={formStyle}>
-                    <h1 style={{ textAlign: "center", marginBottom: "20px", marginLeft: 0 }}>Payslip Form</h1>
+            <Toaster
+                position="top-right"
+                toastOptions={{
+                    duration: 4000,
+                    style: {
+                        background: '#363636',
+                        color: '#fff',
+                    },
+                    success: {
+                        duration: 3000,
+                        iconTheme: {
+                            primary: '#4ade80',
+                            secondary: '#fff',
+                        },
+                    },
+                    error: {
+                        duration: 4000,
+                        iconTheme: {
+                            primary: '#ef4444',
+                            secondary: '#fff',
+                        },
+                    },
+                }}
+            />
+            <div className="p-10">
+
+                <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mt-10 p-5 border border-gray-300 rounded-lg bg-gray-50">
+                    <h1 className="text-center mb-5 text-2xl font-bold">Payslip Form</h1>
                     {/* Employee Name and Date of Joining */}
-                    <div style={rowStyle}>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Employee Name:</label>
+                    <div className="flex gap-3 mb-3">
+                        <div className="flex-1">
+                            <label className="font-bold block mb-1">Employee Name:</label>
                             <input
-                            type="text"
-                            value={employeeName || ""}
-                            onChange={(e) => setEmployeeName(e.target.value)}
-                            style={inputStyle}
+                                type="text"
+                                value={employeeName || ""}
+                                onChange={(e) => setEmployeeName(e.target.value.replace(/[^A-Za-z\s]/g, ""))}
+                                className="w-full p-2 mb-4 rounded border border-gray-300"
+                                required
                             />
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Date of Joining:</label>
+                        <div className="flex-1">
+                            <label className="font-bold block mb-1">Date of Joining:</label>
                             <input
-                            type="date"
-                            value={dateOfJoining || ""}
-                            onChange={(e) => setDateOfJoining(e.target.value)}
-                            style={inputStyle}
+                                type="date"
+                                value={dateOfJoining || ""}
+                                onChange={(e) => setDateOfJoining(e.target.value)}
+                                className="w-full p-2 mb-4 rounded border border-gray-300"
+                                required
                             />
                         </div>
                     </div>
-                
-                        {/* Employee ID and Salary Month */}
-                    <div style={rowStyle}>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Employee ID:</label>
+
+                    {/* Employee ID and Salary Month */}
+                    <div className="flex gap-3 mb-3">
+                        <div className="flex-1">
+                            <label className="font-bold block mb-1">Employee ID:</label>
                             <input
-                            type="text"
-                            value={employeeId || ""}
-                            onChange={(e) => setEmployeeId(e.target.value)}
-                            style={inputStyle}
+                                type="text"
+                                value={employeeId || ""}
+                                onChange={(e) => setEmployeeId(e.target.value)}
+                                className="w-full p-2 mb-4 rounded border border-gray-300"
+                                required
                             />
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Salary Month:</label>
+                        <div className="flex-1">
+                            <label className="font-bold block mb-1">Salary Month:</label>
                             <input
-                            type="month"
-                            value={salaryMonth || ""}
-                            onChange={(e) => setSalaryMonth(e.target.value)}
-                            style={inputStyle}
+                                type="month"
+                                value={salaryMonth || ""}
+                                onChange={(e) => setSalaryMonth(e.target.value)}
+                                className="w-full p-2 mb-4 rounded border border-gray-300"
+                                required
                             />
                         </div>
                     </div>
 
                     {/* Designation */}
-                    <label style={labelStyle}>Designation:</label>
+                    <label className="font-bold block mb-1">Designation:</label>
                     <input
-
                         type="text"
-                        value={designation || ""}   
-                        onChange={(e) => setDesignation(e.target.value)}
-                        style={inputStyle}
+                        value={designation || ""}
+                        onChange={(e) => setDesignation(e.target.value.replace(/[^A-Za-z\s]/g, ""))}
+                        className="w-full p-2 mb-4 rounded border border-gray-300"
+                        required
                     />
 
-                    
+
                     {/* Basic Pay */}
-                    <label style={labelStyle}>Basic Pay:</label>
+                    <label className="font-bold block mb-1">Basic Pay:</label>
                     <input
                         type="text"
                         value={basicPay === 0 ? "" : basicPay}
                         onChange={(e) => setBasicPay(e.target.value.replace(/[^0-9.]/g, ""))}
                         {...inputModeProps}
-                        style={inputStyle}
+                        className="w-full p-2 mb-4 rounded border border-gray-300"
+                        required
                     />
 
                     {/* Statutory Deductions */}
-                    <label style={labelStyle}>Statutory Deductions:</label>
+                    <label className="font-bold block mb-1">Statutory Deductions:</label>
                     {statutoryDeductions.map((deduction, index) => (
-                        <div key={index} style={rowStyle}>
+                        <div key={index} className="flex gap-3 mb-3">
                             <input
                                 type="text"
                                 placeholder="Name"
@@ -178,7 +220,7 @@ const PayslipForm = () => {
                                     );
                                     setStatutoryDeductions(updated);
                                 }}
-                                style={{ ...inputStyle, flex: 2 }}
+                                className="flex-2 w-full p-2 mb-4 rounded border border-gray-300"
                             />
                             <input
                                 type="text"
@@ -191,22 +233,33 @@ const PayslipForm = () => {
                                     setStatutoryDeductions(updated);
                                 }}
                                 {...inputModeProps}
-                                style={{ ...inputStyle, flex: 1 }}
+                                className="flex-1 w-full p-2 mb-4 rounded border border-gray-300"
                             />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const updated = statutoryDeductions.filter((_, i) => i !== index);
+                                    setStatutoryDeductions(updated);
+                                }}
+                                className="px-3 py-2 mb-4 border-none rounded cursor-pointer bg-red-500 text-white hover:bg-red-600 text-sm"
+                                title="Remove deduction"
+                            >
+                                ×
+                            </button>
                         </div>
                     ))}
                     <button
                         type="button"
                         onClick={() => setStatutoryDeductions([...statutoryDeductions, { name: "", amount: 0 }])}
-                        style={btnStyle}
+                        className="px-5 py-2 mr-3 border-none rounded cursor-pointer bg-blue-500 text-white hover:bg-blue-600"
                     >
                         Add Deduction
                     </button>
 
                     {/* Other Deductions */}
-                    <label style={labelStyle}>Other Deductions:</label>
+                    <label className="font-bold block mb-1">Other Deductions:</label>
                     {otherDeductions.map((deduction, index) => (
-                        <div key={index} style={rowStyle}>
+                        <div key={index} className="flex gap-3 mb-3">
                             <input
                                 type="text"
                                 placeholder="Name"
@@ -217,85 +270,99 @@ const PayslipForm = () => {
                                     );
                                     setOtherDeductions(updated);
                                 }}
-                                style={{ ...inputStyle, flex: 2 }}
+                                className="flex-2 w-full p-2 mb-4 rounded border border-gray-300"
                             />
                             <input
                                 type="text"
                                 placeholder="Amount"
                                 value={deduction.amount === 0 ? "" : deduction.amount}
                                 onChange={(e) => {
-                                   const updated = otherDeductions.map((item, i) =>
+                                    const updated = otherDeductions.map((item, i) =>
                                         i === index ? { ...item, amount: parseFloat(e.target.value.replace(/[^0-9.]/g, "")) || 0 } : item
                                     );
                                     setOtherDeductions(updated);
                                 }}
                                 {...inputModeProps}
-                                style={{ ...inputStyle, flex: 1 }}
+                                className="flex-1 w-full p-2 mb-4 rounded border border-gray-300"
                             />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const updated = otherDeductions.filter((_, i) => i !== index);
+                                    setOtherDeductions(updated);
+                                }}
+                                className="px-3 py-2 mb-4 border-none rounded cursor-pointer bg-red-500 text-white hover:bg-red-600 text-sm"
+                                title="Remove deduction"
+                            >
+                                ×
+                            </button>
                         </div>
                     ))}
                     <button
                         type="button"
                         onClick={() => setOtherDeductions([...otherDeductions, { name: "", amount: 0 }])}
-                        style={btnStyle}
+                        className="px-5 py-2 mr-3 border-none rounded cursor-pointer bg-blue-500 text-white hover:bg-blue-600"
                     >
                         Add Other Deduction
                     </button>
 
                     {/* Calculated Total Pay */}
-                    <label style={labelStyle}>Total Pay After Deductions:</label>
+                    <label className="font-bold block mb-1">Total Pay After Deductions:</label>
                     <input
                         type="number"
                         readOnly
                         value={isNaN(totalPay) ? "" : totalPay}
-                        style={inputStyle}
+                        className="w-full p-2 mb-4 rounded border border-gray-300 bg-gray-100 cursor-not-allowed"
+                        disabled
                     />
 
                     {/* Honorarium */}
-                    <label style={labelStyle}>Honorarium:</label>
+                    <label className="font-bold block mb-1">Honorarium:</label>
                     <input
                         type="text"
                         value={honorarium === 0 ? "" : honorarium}
                         onChange={(e) => setHonorarium(e.target.value.replace(/[^0-9.]/g, ""))}
                         {...inputModeProps}
-                        style={inputStyle}
+                        className="w-full p-2 mb-4 rounded border border-gray-300"
                     />
 
                     {/* Allowance */}
-                    <label style={labelStyle}>Allowance:</label>
+                    <label className="font-bold block mb-1">Allowance:</label>
                     <input
                         type="text"
                         value={allowance === 0 ? "" : allowance}
                         onChange={(e) => setAllowance(e.target.value.replace(/[^0-9.]/g, ""))}
                         {...inputModeProps}
-                        style={inputStyle}
+                        className="w-full p-2 mb-4 rounded border border-gray-300"
                     />
 
                     {/* Net Pay */}
-                    <label style={labelStyle}>Net Pay:</label>
+                    <label className="font-bold block mb-1">Net Pay:</label>
                     <input
                         type="number"
                         readOnly
                         value={isNaN(netPay) ? "" : netPay}
-                        style={inputStyle}
+                        className="w-full p-2 mb-4 rounded border border-gray-300 bg-gray-100 cursor-not-allowed"
+                        disabled
                     />
                     {/* Payment Date */}
-                    <label style={labelStyle}>Payment Date:</label>
+                    <label className="font-bold block mb-1">Payment Date:</label>
                     <input
                         type="date"
                         value={paymentDate || ""}
                         onChange={(e) => setPaymentDate(e.target.value)}
-                        style={inputStyle}
+                        className="w-full p-2 mb-4 rounded border border-gray-300"
+                        required
                     />
                     {/* Buttons */}
-                    <div style={{ marginTop: "20px" }}>
-                        <button type="submit" disabled={!isFormValid} style={btnStyle}>
+                    <div className="mt-5">
+                        <button type="submit" disabled={!isFormValid} className="px-5 py-2 mr-3 border-none rounded cursor-pointer bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed">
                             Save Payslip
                         </button>
                         <button
                             type="button"
                             onClick={() => (window.location.href = "/payslipUI")}
-                            style={{ ...btnStyle, backgroundColor: "#6c757d" }}
+                            className="px-5 py-2 mr-3 border-none rounded cursor-pointer bg-gray-500 text-white hover:bg-gray-600"
                         >
                             Return to Payslip Home
                         </button>
