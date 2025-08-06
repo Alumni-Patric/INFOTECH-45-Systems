@@ -58,12 +58,21 @@ export default function PaymentVoucherTable() {
                     <h1 className="text-3xl font-bold text-blue-800 m-0">Payment Vouchers</h1>
                     <p className="text-gray-600 text-base mt-2 mb-0">A list of all payment vouchers including their details and amounts.</p>
                 </div>
-                <button 
-                    onClick={() => handleNavigation('/payment-voucher')} 
-                    className="bg-blue-500 hover:bg-blue-800 text-white border-none py-3 px-6 rounded-lg text-base cursor-pointer font-medium transition-colors duration-200"
-                >
-                    Add Payment Voucher
-                </button>
+                <div className="flex space-x-4 gap-2">
+                    <button 
+                        onClick={() => handleNavigation('/')} 
+                        className="bg-blue-500 hover:bg-blue-800 text-white border-none py-3 px-6 rounded-lg text-base cursor-pointer font-medium transition-colors duration-200"
+                    >
+                        Go Back
+                    </button>
+                    <button 
+                        onClick={() => handleNavigation('/payment-voucher')} 
+                        className="bg-blue-500 hover:bg-blue-800 text-white border-none py-3 px-6 rounded-lg text-base cursor-pointer font-medium transition-colors duration-200"
+                    >
+                        Add Payment Voucher
+                    </button>
+                </div>
+                
             </div>
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div className="max-h-115 overflow-y-auto">
