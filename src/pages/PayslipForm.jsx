@@ -19,6 +19,9 @@ const PayslipForm = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
 
+    const statutoryDeductionsOptions = ["SSS", "PhilHealth", "Pag-IBIG"]; //Add more statutory deductions as needed
+    const otherDeductionsOptions = ["Late", "Absence", "Salary Advance"]; //Add more other deductions as needed
+
     {/* Function to format the date range for the payslip */}
     const getFormattedDate = (startDate, endDate) => {
         if(!startDate || !endDate) return "";
@@ -44,6 +47,20 @@ const PayslipForm = () => {
             return `${startFormatted} - ${endFormatted}`;
         }
     }
+
+    const cleanedOtherDeductions = otherDeductions.map((deduction) => {
+    if (deduction.name === "Custom") {
+        return {
+        name: deduction.customName?.trim() || "Unnamed Deduction", // fallback just in case
+        amount: deduction.amount,
+        };
+    }
+    return {
+        name: deduction.name,
+        amount: deduction.amount,
+    };
+    });
+
 
     const handleStartDateChange = (e) => {
         const selectedDate = e.target.value;
@@ -117,7 +134,7 @@ const PayslipForm = () => {
                 Designation: designation || "",
                 Basic_Pay: parseFloat(basicPay) || 0,
                 Statutory_Deductions:statutoryDeductions,
-                Other_Deductions: otherDeductions,
+                Other_Deductions: cleanedOtherDeductions,
                 Honorarium: parseFloat(honorarium) || 0,
                 Allowance: parseFloat(allowance) || 0,
                 Total_Pay: totalPay,
@@ -275,9 +292,7 @@ const PayslipForm = () => {
                     <label className="font-bold block mb-1">Statutory Deductions:</label>
                     {statutoryDeductions.map((deduction, index) => (
                         <div key={index} className="flex gap-3">
-                            <input
-                                type="text"
-                                placeholder="Name"
+                            <select
                                 value={deduction.name}
                                 onChange={(e) => {
                                     const updated = statutoryDeductions.map((item, i) =>
@@ -286,7 +301,20 @@ const PayslipForm = () => {
                                     setStatutoryDeductions(updated);
                                 }}
                                 className="flex-2 w-full p-2 mb-4 rounded border border-gray-300"
-                            />
+                            >
+                                <option value="" disabled>Select Deduction</option>
+                                {statutoryDeductionsOptions.map((option, idx) => (
+                                    <option 
+                                        key={idx} 
+                                        value={option}
+                                        disabled={statutoryDeductions.some((d) => d.name === option && d.name !== deduction.name)}
+                                    >
+                                        {option}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/*Amount input for statutory deduction*/}
                             <input
                                 type="text"
                                 placeholder="Amount"
@@ -300,6 +328,8 @@ const PayslipForm = () => {
                                 {...inputModeProps}
                                 className="flex-1 w-full p-2 mb-4 rounded border border-gray-300"
                             />
+
+                            {/*Remove button for statutory deduction*/}
                             <button
                                 type="button"
                                 onClick={() => {
@@ -316,7 +346,8 @@ const PayslipForm = () => {
                     <button
                         type="button"
                         onClick={() => setStatutoryDeductions([...statutoryDeductions, { name: "", amount: 0 }])}
-                        className="px-5 py-2 mb-3 border-none rounded cursor-pointer bg-[#022073] text-white hover:bg-blue-800"
+                        className="px-5 py-2 mb-3 border-none rounded cursor-pointer bg-[#022073] text-white hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={statutoryDeductions.length >= statutoryDeductionsOptions.length}
                     >
                         Add Deduction
                     </button>
@@ -325,18 +356,52 @@ const PayslipForm = () => {
                     <label className="font-bold block mb-1">Other Deductions:</label>
                     {otherDeductions.map((deduction, index) => (
                         <div key={index} className="flex gap-3">
-                            <input
-                                type="text"
-                                placeholder="Name"
-                                value={deduction.name}
-                                onChange={(e) => {
-                                    const updated = otherDeductions.map((item, i) =>
-                                        i === index ? { ...item, name: e.target.value } : item
-                                    );
-                                    setOtherDeductions(updated);
-                                }}
-                                className="flex-2 w-full p-2 mb-4 rounded border border-gray-300"
-                            />
+                            {deduction.name !== "Custom" ? (
+                                <select
+                                    value={deduction.name}
+                                    onChange={(e) => {
+                                        const updated = otherDeductions.map((item, i) =>
+                                            i === index ? { ...item, name: e.target.value } : item
+                                        );
+                                        setOtherDeductions(updated);
+                                    }}
+                                    className="flex-2 w-full p-2 mb-4 rounded border border-gray-300"
+                                >
+                                    <option value="" disabled>Select Deduction</option>
+                                    {otherDeductionsOptions.map((option, idx) => (
+                                        <option 
+                                            key={idx} 
+                                            value={option}
+                                            disabled={otherDeductions.some((d) => d.name === option && d.name !== deduction.name)}
+                                        >
+                                            {option}
+                                        </option>
+                                    ))}
+                                    <option value="Custom">Other (Specify)</option>
+                                </select>
+                            ):(
+                                <input
+                                    type="text"
+                                    placeholder='Specify Custom Deduction'
+                                    value={deduction.customName || ""}
+                                    onChange={(e) => {
+                                        const updated = otherDeductions.map((item, i) =>
+                                            i === index ? { ...item, customName: e.target.value } : item
+                                        );
+                                        setOtherDeductions(updated);
+                                    }}
+                                    onBlur={() => {
+                                        if(!deduction.customName) {
+                                            const updated = otherDeductions.map((item, i) =>
+                                                i === index ? { ...item, name: "Custom" } : item
+                                            );
+                                            setOtherDeductions(updated);
+                                        }
+                                    }}
+                                    className='flex-2 w-full p-2 mb-4 rounded border border-gray-300'
+                                />
+                            )}
+            
                             <input
                                 type="text"
                                 placeholder="Amount"
@@ -366,7 +431,8 @@ const PayslipForm = () => {
                     <button
                         type="button"
                         onClick={() => setOtherDeductions([...otherDeductions, { name: "", amount: 0 }])}
-                        className="px-5 py-2 mb-3 border-none rounded cursor-pointer bg-[#022073] text-white hover:bg-blue-800"
+                        className="px-5 py-2 mb-3 border-none rounded cursor-pointer bg-[#022073] text-white hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    
                     >
                         Add Other Deduction
                     </button>

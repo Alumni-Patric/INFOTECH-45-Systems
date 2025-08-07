@@ -165,7 +165,7 @@ function PayslipUI() {
                             {/* Search */}
                             <div className="relative flex-1 min-w-[200px]">
                                 <input
-                                    className="w-full h-10 pl-12 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-[#022073] focus:ring-2 focus:ring-[#022073]/20 bg-white"
+                                    className="w-85 h-10 pl-12 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-[#022073] focus:ring-2 focus:ring-[#022073]/20 bg-white"
                                     placeholder="Search by name..."
                                     type="text"
                                     value={search}
