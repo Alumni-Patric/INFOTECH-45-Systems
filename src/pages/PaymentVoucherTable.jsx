@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router-dom';
 import { getDocs, collection} from "firebase/firestore";
 import { firestore} from "../firebase.js";
+import Navbar from '../NewNavbar&Footer/navbar.jsx';
 
 export default function PaymentVoucherTable() {
 
@@ -52,81 +53,84 @@ export default function PaymentVoucherTable() {
     };
     
     return (
-        <div className="max-w-8xl mx-auto my-16 px-16">
-            <div className="flex justify-between items-center mb-8 mt-2">
-                <div>
-                    <h1 className="text-3xl font-bold text-blue-800 m-0">Payment Vouchers</h1>
-                    <p className="text-gray-600 text-base mt-2 mb-0">A list of all payment vouchers including their details and amounts.</p>
+        <>
+            <Navbar />
+            <div className="max-w-8xl mx-auto my-16 px-16">
+                <div className="flex justify-between items-center mb-8 mt-2">
+                    <div>
+                        <h1 className="text-3xl font-bold text-black m-0">Payment Vouchers</h1>
+                        <p className="text-gray-600 text-base mt-2 mb-0">A list of all payment vouchers including their details and amounts.</p>
+                    </div>
+                    <div className="flex space-x-4 gap-2">
+                        <button 
+                            onClick={() => handleNavigation('/')} 
+                            className="bg-[#022073] hover:bg-blue-800 text-white border-none py-3 px-6 rounded-lg text-base cursor-pointer font-medium transition-colors duration-200"
+                        >
+                            Go Back
+                        </button>
+                        <button 
+                            onClick={() => handleNavigation('/payment-voucher')} 
+                            className="bg-[#022073] hover:bg-blue-800 text-white border-none py-3 px-6 rounded-lg text-base cursor-pointer font-medium transition-colors duration-200"
+                        >
+                            Add Payment Voucher
+                        </button>
+                    </div>
+                    
                 </div>
-                <div className="flex space-x-4 gap-2">
-                    <button 
-                        onClick={() => handleNavigation('/')} 
-                        className="bg-blue-500 hover:bg-blue-800 text-white border-none py-3 px-6 rounded-lg text-base cursor-pointer font-medium transition-colors duration-200"
-                    >
-                        Go Back
-                    </button>
-                    <button 
-                        onClick={() => handleNavigation('/payment-voucher')} 
-                        className="bg-blue-500 hover:bg-blue-800 text-white border-none py-3 px-6 rounded-lg text-base cursor-pointer font-medium transition-colors duration-200"
-                    >
-                        Add Payment Voucher
-                    </button>
-                </div>
-                
-            </div>
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div className="max-h-115 overflow-y-auto">
-                    <table className="w-full border-collapse">
-                        <thead className="sticky top-0 z-10">
-                            <tr>
-                                <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">Voucher No</th>
-                                <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">RFP No</th>
-                                <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">Payee</th>
-                                <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">Purpose</th>
-                                <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">Total Amount</th>
-                                <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">Date</th>
-                                <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
+                <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div className="max-h-115 overflow-y-auto">
+                        <table className="w-full border-collapse">
+                            <thead className="sticky top-0 z-10">
                                 <tr>
-                                    <td colSpan="7" className="p-8 text-center text-gray-500">
-                                        Loading payment vouchers...
-                                    </td>
+                                    <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">Voucher No</th>
+                                    <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">RFP No</th>
+                                    <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">Payee</th>
+                                    <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">Purpose</th>
+                                    <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">Total Amount</th>
+                                    <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">Date</th>
+                                    <th className="bg-gray-50 p-4 text-left font-semibold text-gray-700 border-b border-gray-200">Action</th>
                                 </tr>
-                            ) : paymentVouchers.length === 0 ? (
-                                <tr>
-                                    <td colSpan="7" className="p-8 text-center text-gray-500">
-                                        No payment vouchers found
-                                    </td>
-                                </tr>
-                            ) : (
-                                paymentVouchers.map((voucher, idx) => (
-                                    <tr key={voucher.id || idx} className="hover:bg-gray-50 transition-colors duration-150">
-                                        <td className="p-4 border-b border-gray-200">{voucher.PV_NO || '-'}</td>
-                                        <td className="p-4 border-b border-gray-200">{voucher.RFP_NO || '-'}</td>
-                                        <td className="p-4 border-b border-gray-200">{voucher.Name || '-'}</td>
-                                        <td className="p-4 border-b border-gray-200">{voucher.Purpose || '-'}</td>
-                                        <td className="p-4 border-b border-gray-200">
-                                            {voucher.Amount !== undefined ? `₱${Number(voucher.Amount).toLocaleString()}` : '-'}
-                                        </td>
-                                        <td className="p-4 border-b border-gray-200">{voucher.Date_Paid || '-'}</td>
-                                        <td className="p-4 border-b border-gray-200">
-                                            <button
-                                                onClick={() => handleEdit(voucher.PV_NO || voucher.id)}
-                                                className="text-indigo-500 hover:text-indigo-700 bg-transparent border-none cursor-pointer text-sm font-medium transition-colors duration-200"
-                                            >
-                                                View Details
-                                            </button>
+                            </thead>
+                            <tbody>
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan="7" className="p-8 text-center text-gray-500">
+                                            Loading payment vouchers...
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                ) : paymentVouchers.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="7" className="p-8 text-center text-gray-500">
+                                            No payment vouchers found
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    paymentVouchers.map((voucher, idx) => (
+                                        <tr key={voucher.id || idx} className="hover:bg-gray-50 transition-colors duration-150">
+                                            <td className="p-4 border-b border-gray-200">{voucher.PV_NO || '-'}</td>
+                                            <td className="p-4 border-b border-gray-200">{voucher.RFP_NO || '-'}</td>
+                                            <td className="p-4 border-b border-gray-200">{voucher.Name || '-'}</td>
+                                            <td className="p-4 border-b border-gray-200">{voucher.Purpose || '-'}</td>
+                                            <td className="p-4 border-b border-gray-200">
+                                                {voucher.Amount !== undefined ? `₱${Number(voucher.Amount).toLocaleString()}` : '-'}
+                                            </td>
+                                            <td className="p-4 border-b border-gray-200">{voucher.Date_Paid || '-'}</td>
+                                            <td className="p-4 border-b border-gray-200">
+                                                <button
+                                                    onClick={() => handleEdit(voucher.PV_NO || voucher.id)}
+                                                    className="text-indigo-500 hover:text-indigo-700 bg-transparent border-none cursor-pointer text-sm font-medium transition-colors duration-200"
+                                                >
+                                                    View Details
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 }

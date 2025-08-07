@@ -3,19 +3,67 @@ import Navbar from "../NewNavbar&Footer/navbar.jsx";
 import { collection, setDoc, getDocs, doc } from "firebase/firestore";
 import { firestore } from "../firebase.js";
 import toast, { Toaster } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const PayslipForm = () => {
     const [employeeName, setEmployeeName] = useState("");
     const [employeeId, setEmployeeId] = useState("");
     const [designation, setDesignation] = useState("");
-    const [dateOfJoining, setDateOfJoining] = useState("");
-    const [salaryMonth, setSalaryMonth] = useState("");
     const [basicPay, setBasicPay] = useState(0);
     const [statutoryDeductions, setStatutoryDeductions] = useState([]);
     const [otherDeductions, setOtherDeductions] = useState([]);
     const [honorarium, setHonorarium] = useState(0);
     const [allowance, setAllowance] = useState(0);
-    const [paymentDate, setPaymentDate] = useState("");
+    const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]); // Default to today
+    const [endDate, setEndDate] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const navigate = useNavigate();
+
+    {/* Function to format the date range for the payslip */}
+    const getFormattedDate = (startDate, endDate) => {
+        if(!startDate || !endDate) return "";
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        if(end < start) {
+            toast.error("End date cannot be earlier than start date.");
+            return;
+        }
+
+        const sameMonth = start.getMonth() === end.getMonth();
+        const sameYear = start.getFullYear() === end.getFullYear();
+
+        const monthName = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(start);
+
+        if(sameMonth && sameYear) {
+            return `${monthName} ${start.getDate()}-${end.getDate()}, ${start.getFullYear()}`;
+        }else{
+            const startFormatted = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(start);
+            const endFormatted = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(end);
+            return `${startFormatted} - ${endFormatted}`;
+        }
+    }
+
+    const handleStartDateChange = (e) => {
+        const selectedDate = e.target.value;
+        setStartDate(selectedDate);
+
+        // If end date is not set or is before the start date, reset it
+        if (endDate && new Date(endDate) < new Date(selectedDate)) {
+            setEndDate("");
+        }
+    };
+
+    {/* Function to handle end date change to not surpass the start date*/}
+    const handleEndDateChange = (e) => {
+        const selectedDate = e.target.value;
+        if(new Date(selectedDate) < new Date(startDate)) {
+            toast.error("End date cannot be earlier than start date.");
+            return;
+        }
+        setEndDate(selectedDate);
+    }
 
     const inputModeProps = {
         inputMode: "decimal",
@@ -34,13 +82,16 @@ const PayslipForm = () => {
         employeeName.trim() !== "" &&
         employeeId.trim() !== "" &&
         designation.trim() !== "" &&
-        dateOfJoining !== "" &&
-        salaryMonth !== "" &&
-        parseFloat(basicPay) > 0 &&
-        paymentDate !== "";
+        startDate !== "" &&
+        endDate !== "" &&
+        parseFloat(basicPay) > 0;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (isSubmitting) return; // Prevent multiple submissions
+        setIsSubmitting(true); //Locks the button   
+
         if (!isFormValid) {
             toast.error("Please fill in all required fields before submitting.");
             return;
@@ -61,47 +112,48 @@ const PayslipForm = () => {
             // Create a new document with the next ID
             const payslipDocId = `payslip-${nextId}`;
             await setDoc(doc(firestore, "Payslip", payslipDocId), {
-                employeeName: employeeName || "",
-                employeeId: employeeId || "",
-                designation: designation || "",
-                dateOfJoining: dateOfJoining || "",
-                salaryMonth: salaryMonth || "",
-                basicPay: parseFloat(basicPay) || 0,
-                statutoryDeductions,
-                otherDeductions,
-                honorarium: parseFloat(honorarium) || 0,
-                allowance: parseFloat(allowance) || 0,
-                totalPay,
-                netPay,
-                paymentDate: paymentDate || "",
-                status: "Pending",
-                createdAt: new Date().toISOString(),
-                timestamp: new Date(),
+                Employee_Name: employeeName || "",
+                Employee_Id: employeeId || "",
+                Designation: designation || "",
+                Basic_Pay: parseFloat(basicPay) || 0,
+                Statutory_Deductions:statutoryDeductions,
+                Other_Deductions: otherDeductions,
+                Honorarium: parseFloat(honorarium) || 0,
+                Allowance: parseFloat(allowance) || 0,
+                Total_Pay: totalPay,
+                Net_Pay: netPay,
+                Payment_Period: getFormattedDate(startDate, endDate),
+                Status: "Pending",
+                CreatedAt: new Date().toISOString(),
+                Timestamp: new Date(),
             });
 
-            toast.dismiss(loadingToast);
-            toast.success("Payslip saved successfully!");
-
+            
             // Clear all form fields
             setEmployeeName("");
             setEmployeeId("");
             setDesignation("");
-            setDateOfJoining("");
-            setSalaryMonth("");
             setBasicPay(0);
             setStatutoryDeductions([]);
             setOtherDeductions([]);
             setHonorarium(0);
             setAllowance(0);
-            setPaymentDate("");
-
+            setStartDate(() => new Date().toISOString().split('T')[0]); // Reset to today
+            setEndDate("");
+            
             // Scroll to top after a short delay to ensure DOM has updated
             setTimeout(() => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }, 100);
+            
+            toast.dismiss(loadingToast);
+            toast.success("Payslip saved successfully!");
+            navigate('/payslipUI'); // Navigate to Payslip UI after saving
         } catch (err) {
             toast.dismiss(loadingToast);
             toast.error("Error saving payslip: " + err.message);
+        }finally{
+            setIsSubmitting(false); // Unlocks the button
         }
     };
 
@@ -143,73 +195,86 @@ const PayslipForm = () => {
                             <input
                                 type="text"
                                 value={employeeName || ""}
+                                placeholder='Enter Employee Name'
                                 onChange={(e) => setEmployeeName(e.target.value.replace(/[^A-Za-z\s]/g, ""))}
                                 className="w-full p-2 mb-4 rounded border border-gray-300"
                                 required
                             />
                         </div>
                         <div className="flex-1">
-                            <label className="font-bold block mb-1">Date of Joining:</label>
-                            <input
-                                type="date"
-                                value={dateOfJoining || ""}
-                                onChange={(e) => setDateOfJoining(e.target.value)}
-                                className="w-full p-2 mb-4 rounded border border-gray-300"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    {/* Employee ID and Salary Month */}
-                    <div className="flex gap-3 mb-3">
-                        <div className="flex-1">
                             <label className="font-bold block mb-1">Employee ID:</label>
                             <input
                                 type="text"
                                 value={employeeId || ""}
+                                placeholder='Enter Employee ID'
                                 onChange={(e) => setEmployeeId(e.target.value)}
                                 className="w-full p-2 mb-4 rounded border border-gray-300"
                                 required
                             />
                         </div>
+                        
+                    </div>
+
+                    {/* Pay Period (Start and End)*/}
+                    <div className="flex gap-3 mb-3">
                         <div className="flex-1">
-                            <label className="font-bold block mb-1">Salary Month:</label>
+                            <label className="font-bold block mb-1">Start Date:</label>
                             <input
-                                type="month"
-                                value={salaryMonth || ""}
-                                onChange={(e) => setSalaryMonth(e.target.value)}
+                                type="date"
+                                value={startDate || ""}
+                                onChange={handleStartDateChange}
+                                className="w-full p-2 mb-4 rounded border border-gray-300"
+                                required
+                                disabled
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className="font-bold block mb-1">End Date:</label>
+                            <input
+                                type="date"
+                                value={endDate || ""}
+                                onChange={handleEndDateChange}
+                                min={startDate}
+                                className="w-full p-2 mb-4 rounded border border-gray-300"
+                                disabled={!startDate} // Disable if start date is not set
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 mb-3">
+                        <div className="flex-1">
+                            {/* Designation */}
+                            <label className="font-bold block mb-1">Designation:</label>
+                            <input
+                                type="text"
+                                value={designation || ""}
+                                placeholder='Enter Designation'
+                                onChange={(e) => setDesignation(e.target.value.replace(/[^A-Za-z\s]/g, ""))}
+                                className="w-full p-2 mb-4 rounded border border-gray-300"
+                                required
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className="font-bold block mb-1">Basic Pay:</label>
+                            <input
+                                type="text"
+                                value={basicPay === 0 ? "" : basicPay}
+                                placeholder='Enter Base Salary'
+                                onChange={(e) => setBasicPay(e.target.value.replace(/[^0-9.]/g, ""))}
+                                {...inputModeProps}
                                 className="w-full p-2 mb-4 rounded border border-gray-300"
                                 required
                             />
                         </div>
                     </div>
 
-                    {/* Designation */}
-                    <label className="font-bold block mb-1">Designation:</label>
-                    <input
-                        type="text"
-                        value={designation || ""}
-                        onChange={(e) => setDesignation(e.target.value.replace(/[^A-Za-z\s]/g, ""))}
-                        className="w-full p-2 mb-4 rounded border border-gray-300"
-                        required
-                    />
-
-
-                    {/* Basic Pay */}
-                    <label className="font-bold block mb-1">Basic Pay:</label>
-                    <input
-                        type="text"
-                        value={basicPay === 0 ? "" : basicPay}
-                        onChange={(e) => setBasicPay(e.target.value.replace(/[^0-9.]/g, ""))}
-                        {...inputModeProps}
-                        className="w-full p-2 mb-4 rounded border border-gray-300"
-                        required
-                    />
+                    
 
                     {/* Statutory Deductions */}
                     <label className="font-bold block mb-1">Statutory Deductions:</label>
                     {statutoryDeductions.map((deduction, index) => (
-                        <div key={index} className="flex gap-3 mb-3">
+                        <div key={index} className="flex gap-3">
                             <input
                                 type="text"
                                 placeholder="Name"
@@ -251,7 +316,7 @@ const PayslipForm = () => {
                     <button
                         type="button"
                         onClick={() => setStatutoryDeductions([...statutoryDeductions, { name: "", amount: 0 }])}
-                        className="px-5 py-2 mr-3 border-none rounded cursor-pointer bg-blue-500 text-white hover:bg-blue-600"
+                        className="px-5 py-2 mb-3 border-none rounded cursor-pointer bg-[#022073] text-white hover:bg-blue-800"
                     >
                         Add Deduction
                     </button>
@@ -259,7 +324,7 @@ const PayslipForm = () => {
                     {/* Other Deductions */}
                     <label className="font-bold block mb-1">Other Deductions:</label>
                     {otherDeductions.map((deduction, index) => (
-                        <div key={index} className="flex gap-3 mb-3">
+                        <div key={index} className="flex gap-3">
                             <input
                                 type="text"
                                 placeholder="Name"
@@ -301,7 +366,7 @@ const PayslipForm = () => {
                     <button
                         type="button"
                         onClick={() => setOtherDeductions([...otherDeductions, { name: "", amount: 0 }])}
-                        className="px-5 py-2 mr-3 border-none rounded cursor-pointer bg-blue-500 text-white hover:bg-blue-600"
+                        className="px-5 py-2 mb-3 border-none rounded cursor-pointer bg-[#022073] text-white hover:bg-blue-800"
                     >
                         Add Other Deduction
                     </button>
@@ -321,6 +386,7 @@ const PayslipForm = () => {
                     <input
                         type="text"
                         value={honorarium === 0 ? "" : honorarium}
+                        placeholder="0"
                         onChange={(e) => setHonorarium(e.target.value.replace(/[^0-9.]/g, ""))}
                         {...inputModeProps}
                         className="w-full p-2 mb-4 rounded border border-gray-300"
@@ -331,6 +397,7 @@ const PayslipForm = () => {
                     <input
                         type="text"
                         value={allowance === 0 ? "" : allowance}
+                        placeholder='0'
                         onChange={(e) => setAllowance(e.target.value.replace(/[^0-9.]/g, ""))}
                         {...inputModeProps}
                         className="w-full p-2 mb-4 rounded border border-gray-300"
@@ -345,19 +412,13 @@ const PayslipForm = () => {
                         className="w-full p-2 mb-4 rounded border border-gray-300 bg-gray-100 cursor-not-allowed"
                         disabled
                     />
-                    {/* Payment Date */}
-                    <label className="font-bold block mb-1">Payment Date:</label>
-                    <input
-                        type="date"
-                        value={paymentDate || ""}
-                        onChange={(e) => setPaymentDate(e.target.value)}
-                        className="w-full p-2 mb-4 rounded border border-gray-300"
-                        required
-                    />
                     {/* Buttons */}
                     <div className="mt-5">
-                        <button type="submit" disabled={!isFormValid} className="px-5 py-2 mr-3 border-none rounded cursor-pointer bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Save Payslip
+                        <button 
+                            type="submit" 
+                            disabled={!isFormValid || isSubmitting} 
+                            className="px-5 py-2 mr-3 border-none rounded cursor-pointer bg-[#022073] text-white hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                            {isSubmitting ? "Saving..." : "Save Payslip"}
                         </button>
                         <button
                             type="button"

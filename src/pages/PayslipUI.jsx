@@ -42,7 +42,7 @@ function PayslipUI() {
     }, []);
 
     const filteredPayslips = payslips
-        .filter(p => p.employeeName?.toLowerCase().includes(search.toLowerCase()))
+        .filter(p => p.Employee_Name?.toLowerCase().includes(search.toLowerCase()))
         .filter(p => {
             // Status filter
             if (statusFilter !== "all" && p.status !== statusFilter) {
@@ -59,8 +59,8 @@ function PayslipUI() {
         })
         .sort((a, b) => {
             // Sort by creation timestamp if available, otherwise by ID (newest first)
-            if (a.createdAt && b.createdAt) {
-                return new Date(b.createdAt) - new Date(a.createdAt);
+            if (a.CreatedAt && b.CreatedAt) {
+                return new Date(b.CreatedAt) - new Date(a.CreatedAt);
             }
             // If no timestamp, sort by ID (assuming newer IDs are created later)
             return b.id.localeCompare(a.id);
@@ -96,12 +96,12 @@ function PayslipUI() {
             <div className="min-h-[650px] text-black mx-10 p-6">
                 <div className="flex justify-between">
                     <div className="flex-1">
-                        <h2 className="p-0 m-0 text-[36px]">Payslip</h2>
+                        <h2 className="p-0 m-0 text-[36px] font-bold">Payslip</h2>
                         <span className="text-[#797979] text-base">Detailed records of employment earnings and deductions</span>
                     </div>
                     <div className="flex-1 flex justify-end items-center gap-4">
                         <Link to="/payslip-form">
-                            <button className="bg-[#022073] text-white rounded-full py-2.5 px-5 text-base font-semibold border-none cursor-pointer hover:bg-[#3e63cb] transition-colors whitespace-nowrap flex-shrink-0">
+                            <button className="bg-[#022073] text-white rounded-full py-2.5 px-5 text-base font-semibold border-none cursor-pointer hover:bg-blue-800 transition-colors whitespace-nowrap flex-shrink-0">
                                 Go to Payslip Form
                             </button>
                         </Link>
@@ -198,12 +198,11 @@ function PayslipUI() {
                                     <tr className="h-[67px] bg-[#F6F9F8] text-[#797979]">
                                         <th className="font-normal p-2 min-w-[200px]">
                                             <label className="inline-flex items-center gap-1.5 text-base text-[#797979] font-normal">
-                                                <input type="checkbox" id="select-all" className="h-4 w-4" />
                                                 <span>Name</span>
                                             </label>
                                         </th>
-                                        <th className="font-normal p-2 min-w-[150px]">Department</th>
-                                        <th className="font-normal p-2 min-w-[150px]">Payment Date</th>
+                                        <th className="font-normal p-2 min-w-[150px]">Designation</th>
+                                        <th className="font-normal p-2 min-w-[150px]">Payment Period</th>
                                         <th className="font-normal p-2 min-w-[100px]">Status</th>
                                         <th className="font-normal p-2 min-w-[120px]">Action</th>
                                         <th className="font-normal p-2 min-w-[150px]">Signature</th>
@@ -235,19 +234,18 @@ function PayslipUI() {
                                             <tr className="h-[67px] text-black hover:bg-gray-50" key={payslip.id}>
                                                 <td className="p-2 border-b border-[#E8E8E8] min-w-[200px]">
                                                     <label className="inline-flex items-center gap-1.5 text-base text-black font-semibold">
-                                                        <input type="checkbox" className="h-4 w-4" />
-                                                        <span>{payslip.employeeName}</span>
+                                                        <span>{payslip.Employee_Name}</span>
                                                     </label>
                                                 </td>
-                                                <td className="p-2 border-b border-[#E8E8E8] min-w-[150px]">{payslip.designation}</td>
-                                                <td className="p-2 border-b border-[#E8E8E8] min-w-[150px]">{payslip.paymentDate}</td>
-                                                <td className={`p-2 border-b border-[#E8E8E8] min-w-[100px] ${payslip.status === "Paid"
+                                                <td className="p-2 border-b border-[#E8E8E8] min-w-[150px]">{payslip.Designation}</td>
+                                                <td className="p-2 border-b border-[#E8E8E8] min-w-[150px]">{payslip.Payment_Period}</td>
+                                                <td className={`p-2 border-b border-[#E8E8E8] min-w-[100px] ${payslip.Status === "Paid"
                                                     ? "text-green-600"
-                                                    : payslip.status === "Overdue"
+                                                    : payslip.Status === "Overdue"
                                                         ? "text-red-600"
                                                         : "text-orange-500"
                                                     }`}>
-                                                    {payslip.status}
+                                                    {payslip.Status}
                                                 </td>
                                                 <td className="p-2 border-b border-[#E8E8E8] min-w-[120px]">
                                                     <Link to={`/payslip/${payslip.id}`} className="text-[#2A03A9] underline font-semibold cursor-pointer">
