@@ -488,7 +488,7 @@ const PayslipForm = () => {
                         </button>
                         <button
                             type="button"
-                            onClick={() => (window.location.href = "/payslipUI")}
+                            onClick={() => navigate("/payslipUI")}
                             className="px-5 py-2 mr-3 border-none rounded cursor-pointer bg-gray-500 text-white hover:bg-gray-600"
                         >
                             Return to Payslip Home
