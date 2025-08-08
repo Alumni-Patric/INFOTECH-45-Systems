@@ -1,21 +1,20 @@
 /* eslint-disable no-undef */
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
-import '../payment-voucher-css/App.css';
-import { doc, setDoc, getDocs, collection} from "firebase/firestore"; // Import setDoc and doc
-import { firestore} from "../firebase.js";
+// import '../payment-voucher-css/App.css'; // Remove this line if using only Tailwind
+import { doc, setDoc, getDocs, collection } from "firebase/firestore";
+import { firestore } from "../firebase.js";
 import { useNavigate } from 'react-router-dom';
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import Navbar from '../NewNavbar&Footer/navbar';
 import Footer from '../NewNavbar&Footer/footer';
 
 function PaymentVoucher() {
-  const [collectionName] = useState("Payment Voucher"); // Define collection name
+  const [collectionName] = useState("Payment Voucher");
   const navigate = useNavigate();
 
   const formattedPVNo = () => {
     const dynamicNumber = () => {
-        return Math.floor(Math.random() * 1e4)
+      return Math.floor(Math.random() * 1e4)
         .toString()
         .padStart(4, "0");
     }
@@ -24,7 +23,7 @@ function PaymentVoucher() {
 
   const formattedSINo = () => {
     const dynamicNumber = () => {
-        return Math.floor(Math.random() * 1e4)
+      return Math.floor(Math.random() * 1e4)
         .toString()
         .padStart(4, "0");
     }
@@ -34,81 +33,73 @@ function PaymentVoucher() {
   const [attributes, setAttributes] = useState([]);
   const [payee, setPayee] = useState([]);
   const [totalAmnt, setTotalAmount] = useState([]);
-
   const [selectedRFP, setSelectedRFP] = useState('');
   const [selectedPayee, setSelectedPayee] = useState('');
   const [selectedTotalAmnt, setSelectedTotalAmnt] = useState('');
 
-
-  const  fetchRFP = async () => {
-    try{
-      const querySnapshot = await getDocs(collection(firestore,"Request for Payment"));
+  const fetchRFP = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(firestore, "Request for Payment"));
       const dataList = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data()
-      }))
+      }));
 
       const rfpvalues = dataList.map(dataList => dataList.RFP_NO);
       const payeeName = dataList.map(dataList => dataList.PAYEE);
       const totalamnt = dataList.map(dataList => dataList.TOTALAMT);
-      
-      console.log("Fetched Data: ", dataList); //Debugging line
+
       setAttributes(rfpvalues);
       setPayee(payeeName);
       setTotalAmount(totalamnt);
-      console.log(dataList);
-    }catch(error){
+    } catch (error) {
       console.log(error);
     }
-  }
+  };
 
   const [checkNumbers, setCheckNumbers] = useState([]);
   const [checkAmounts, setCheckAmounts] = useState([]);
   const [accountName, setAccountName] = useState([]);
 
-  const fetchCheckNoAmount = async () =>{
-    try{
+  const fetchCheckNoAmount = async () => {
+    try {
       const querySnapshot = await getDocs(collection(firestore, "Request for Payment"));
       const dataList = querySnapshot.docs.map((doc) => ({
-        id:doc.id,
+        id: doc.id,
         ...doc.data()
-      }))
+      }));
 
       const checkNos = [];
       const checkAmts = [];
       const accountNm = [];
 
-      dataList.forEach((data) =>{
-        if(Array.isArray(data.CHARGETO_ROWS)){
-          //Loop through the attribute
+      dataList.forEach((data) => {
+        if (Array.isArray(data.CHARGETO_ROWS)) {
           data.CHARGETO_ROWS.forEach((row) => {
-            if(row.checkAmount && row.checkNumber && row.accountName){
+            if (row.checkAmount && row.checkNumber && row.accountName) {
               checkAmts.push(row.checkAmount);
               checkNos.push(row.checkNumber);
               accountNm.push(row.accountName);
             }
-          })
+          });
         }
-      })
-      
-      // console.log(checkNos);
-      // console.log(checkAmts);
+      });
 
       setCheckNumbers(checkNos);
       setCheckAmounts(checkAmts);
       setAccountName(accountNm);
-    }catch(error){
-      console.log(error)
+    } catch (error) {
+      console.log(error);
     }
-  }
+  };
 
-  const  handleSelectedRFP = (e) => {
+  const handleSelectedRFP = (e) => {
     const selectedValue = e.target.value;
     setSelectedRFP(selectedValue);
 
     const index = attributes.findIndex((rfp) => rfp === selectedValue);
 
-    if(index != 1){ 
+    if (index !== -1) {
       setSelectedPayee(payee[index]);
       setSelectedTotalAmnt(totalAmnt[index]);
       setValues((prev) => ({
@@ -117,7 +108,7 @@ function PaymentVoucher() {
         Name: payee[index],
         Amount: totalAmnt[index]
       }));
-    }else{
+    } else {
       setSelectedPayee('');
       setSelectedTotalAmnt('');
       setValues((prev) => ({
@@ -127,109 +118,94 @@ function PaymentVoucher() {
         Amount: ''
       }));
     }
-  }
+  };
 
-  // Auto-generate PV_NO when component mounts
   useEffect(() => {
     const initialPV_NO = formattedPVNo();
     setValues((prev) => ({ ...prev, PV_NO: initialPV_NO }));
   }, []);
 
-  useEffect(() =>{
+  useEffect(() => {
     const initialSI_No = formattedSINo();
-    setValues((prev) => ({ ...prev, SI_NO: initialSI_No}));
-  }, [])
+    setValues((prev) => ({ ...prev, SI_NO: initialSI_No }));
+  }, []);
 
   const [values, setValues] = useState({
     Name: "",
-    PV_NO: "",//Auto-Generated ID
+    PV_NO: "",
     Amount: "",
-    RFP_NO: "",//Get from Purchasing
+    RFP_NO: "",
     Purpose: "",
     Paid_By: "",
     Date_Paid: "",
-    Received_By:"",
-    SI_NO: "",//Auto-Generated
+    Received_By: "",
+    SI_NO: "",
     PV_Status: "Forwarded"
   });
 
   const [values2, setValues2] = useState([
     {
-    Account_ID: "",
-    Account_Name: "",
-    Debit_Amount: "",
-    Credit_Amount: "",
-    Check_No:"",
-    Check_Amount:"",
-    Recorded_By: "Barry Simmons",
-    Date_Recorded: ""
+      Account_ID: "",
+      Account_Name: "",
+      Debit_Amount: "",
+      Credit_Amount: "",
+      Check_No: "",
+      Check_Amount: "",
+      Recorded_By: "Barry Simmons",
+      Date_Recorded: ""
     }
   ]);
 
-
   const handleChanges = (e) => {
-    setValues({...values, [e.target.name]:e.target.value})
-  }
+    setValues({ ...values, [e.target.name]: e.target.value });
+  };
 
   const handleChanges2 = (e, index) => {
-    const {name, value } = e.target;
+    const { name, value } = e.target;
 
     setValues2((prev) => {
       const updated = [...prev];
-      if(name === "Check_No"){
-        // Find the corresponding check amount for the selected check number
+      if (name === "Check_No") {
         const checkindex = checkNumbers.findIndex((checkNo) => checkNo === value);
         updated[index][name] = value;
         updated[index].Check_Amount = checkindex !== -1 ? checkAmounts[checkindex] : "";
-        updated[index].Account_Name = checkindex !== -1 ? accountName [checkindex] : "";
-      }else if (name === "Recorded_By" || name === "Date_Recorded") {
-        // Update these fields for all accounts
+        updated[index].Account_Name = checkindex !== -1 ? accountName[checkindex] : "";
+      } else if (name === "Recorded_By" || name === "Date_Recorded") {
         updated.forEach((account) => {
           account[name] = value;
         });
-      }else{
+      } else {
         updated[index][name] = value;
-      } 
-
+      }
       return updated;
     });
   };
+
   const handleSubmit = async (e) => {
-    e.preventDefault()
-  
+    e.preventDefault();
+
     const paymentCollectionRef = collection(firestore, collectionName);
-  
-    // Fetch all documents in the collection
     const snapshot = await getDocs(paymentCollectionRef);
-  
-    // Calculate the next document number dynamically
     const existingIds = snapshot.docs.map((doc) => parseInt(doc.id.split('-')[1], 10)).filter((id) => !isNaN(id));
     const nextId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
-  
-    // Generate unique document IDs
     const paymentDocId = `Payment-${nextId}`;
     const accountingDocId = `Accounting-${nextId}`;
-  
-    // **Save the generated PV_NO and SI_NO** for reference (before resetting the form)
     const generatedPVNo = formattedPVNo();
     const generatedSINo = formattedSINo();
-  
-    // Update the values with the generated unique numbers
+
     const updatedValues = {
       ...values,
-      PV_NO: generatedPVNo, // Save unique PV_NO
-      SI_NO: generatedSINo   // Save unique SI_NO
+      PV_NO: generatedPVNo,
+      SI_NO: generatedSINo
     };
-  
+
     try {
-      // Save Payment Voucher to Firestore
       await setDoc(doc(firestore, collectionName, paymentDocId), updatedValues);
       console.log("Payment Voucher saved successfully!");
     } catch (e) {
       console.log(e);
     }
-  
-    // Proccessing values2 (Accounts data) - converting empty amounts to 0
+
     try {
       const accountsToSave = values2.map((account) => ({
         ...account,
@@ -238,7 +214,7 @@ function PaymentVoucher() {
         Debit_Amount: account.Debit_Amount === '' ? 0 : parseFloat(account.Debit_Amount),
         Credit_Amount: account.Credit_Amount === '' ? 0 : parseFloat(account.Credit_Amount),
       }));
-  
+
       await setDoc(doc(firestore, collectionName, accountingDocId), {
         Accounts: accountsToSave
       });
@@ -246,33 +222,31 @@ function PaymentVoucher() {
     } catch (e) {
       console.log(e);
     }
-  
-    // Saving to Payments Logbook
+
     try {
-      const { PV_NO, Name, Amount, Date_Paid } = updatedValues; // Use the updated values
+      const { PV_NO, Name, Amount, Date_Paid } = updatedValues;
       const docRef = doc(firestore, "Payments Logbook", `Cash_Check_Logs ${nextId}`);
-  
+
       await setDoc(docRef, {
         PV_NO: PV_NO,
         Payee: Name,
         Amount: Amount,
-        Mode: "Check",  // Can be dynamic based on your logic
+        Mode: "Check",
         Date: Date_Paid,
         Status: "Pending"
       });
-  
+
       console.log("Payment Log saved successfully!");
       alert("Payment Logs saved successfully");
     } catch (error) {
       console.error("Error saving Payment Logs: ", error);
     }
-  
-    // Reset the form after successful submission
-    resetForm(generatedPVNo, generatedSINo);  // Pass generated PV_NO and SI_NO
+
+    resetForm(generatedPVNo, generatedSINo);
   };
 
   const resetForm = (generatedPVNo, generatedSINo) => {
-   setValues({
+    setValues({
       Name: "",
       PV_NO: generatedPVNo,
       Amount: "",
@@ -285,24 +259,23 @@ function PaymentVoucher() {
       PV_Status: "Forwarded"
     });
 
-  setValues2([
-    {
-      Account_ID: "",
-      Account_Name: "",
-      Debit_Amount: "",
-      Credit_Amount: "",
-      Check_No: "",
-      Check_Amount: "",
-      Recorded_By: "Barry Simmons", //reset to default
-      Date_Recorded: ""
-    }
-  ]);
+    setValues2([
+      {
+        Account_ID: "",
+        Account_Name: "",
+        Debit_Amount: "",
+        Credit_Amount: "",
+        Check_No: "",
+        Check_Amount: "",
+        Recorded_By: "Barry Simmons",
+        Date_Recorded: ""
+      }
+    ]);
 
     setSelectedRFP("");
     setSelectedPayee("");
     setSelectedTotalAmnt("");
-};
-  
+  };
 
   const generateTableForPrint = () => {
     const paymentTable = `
@@ -350,7 +323,7 @@ function PaymentVoucher() {
           </tr>
         </thead>
         <tbody>
-          ${values2.map( account => `
+          ${values2.map(account => `
             <tr>
               <td style="border: 1px solid #ddd; padding: 8px;">${account.Account_ID}</td>
               <td style="border: 1px solid #ddd; padding: 8px;">${account.Account_Name}</td>
@@ -408,9 +381,7 @@ function PaymentVoucher() {
     printWindow.document.close();
   };
 
-
-  const[elements, setElements] = useState([]);//state for element data (empty)
-  const[count, setCount] = useState(2);
+  const [count, setCount] = useState(2);
 
   const addElement = () => {
     setValues2((prev) => {
@@ -421,160 +392,156 @@ function PaymentVoucher() {
         Credit_Amount: "",
         Check_No: "",
         Check_Amount: "",
-        Recorded_By: prev[0]?.Recorded_By || "", // Copy from the first account
-        Date_Recorded: prev[0]?.Date_Recorded || "", // Copy from the first account
+        Recorded_By: prev[0]?.Recorded_By || "",
+        Date_Recorded: prev[0]?.Date_Recorded || "",
       };
-  
       return [...prev, newAccount];
     });
-    
     setCount(count + 1);
-  }
+  };
 
   const removeElement = () => {
-    if(values2.length  > 1){
-      setValues2(values2.slice(0, -1)); //remove the last element
+    if (values2.length > 1) {
+      setValues2(values2.slice(0, -1));
       setCount(count - 1);
     }
-  }
-  useEffect(() =>{
+  };
+
+  useEffect(() => {
     fetchRFP();
     fetchCheckNoAmount();
-  },[]);
-
+    // eslint-disable-next-line
+  }, []);
 
   return (
     <>
-    <Navbar />
-    <div className="container">
-      <form className="payment-voucher" onSubmit={handleSubmit}>
+      <Navbar />
+      <div className="max-w-4xl mx-auto bg-white shadow-lg border-none mt-16 p-10 rounded-lg">
+        <form className="space-y-6" onSubmit={handleSubmit}>
+  <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Payment Voucher</h2>
 
-        <h2>Payment Voucher</h2>
+  {/* PV No and RFP No (two columns) */}
+  <div className="flex flex-wrap items-center gap-6 mb-4">
+    <label htmlFor="pvno" className="w-24 font-semibold text-gray-700">PV No:</label>
+    <input type="text" name="PV_NO" className="flex-1 px-3 py-2 border rounded bg-gray-100" value={values.PV_NO}
+      onChange={handleChanges} required disabled />
+    <label htmlFor="rfpno" className="w-24 font-semibold text-gray-700">RFP No:</label>
+    <select type="text" name="RFP_NO" id="rfpno" className="flex-1 px-3 py-2 border rounded" value={selectedRFP} onChange={handleSelectedRFP}>
+      <option value="">Select RFP</option>
+      {attributes.map((rfp, index) => (
+        <option key={index} value={rfp}> {rfp} </option>
+      ))}
+    </select>
+  </div>
 
+  {/* Payee (single column, aligned) */}
+  <div className="flex items-center gap-6 mb-4">
+    <label htmlFor="name" className="w-24 font-semibold text-gray-700">Payee:</label>
+    <input type="text" name="Name"
+      onChange={handleChanges} value={selectedPayee} required disabled
+      className="flex-1 px-3 py-2 border rounded bg-gray-100" />
+  </div>
 
-        <div className="pvrfp-container">
-          <label htmlFor="pvno">PV No:</label>
-          <input type="text" name="PV_NO" className="pvno" value={values.PV_NO}
-            onChange={(e) => handleChanges(e)} required disabled />
-          <label htmlFor="rfpno">RFP No:</label>
-        <select  type="text" name="RFP_NO" id="rfpno" className="rfpno" value={selectedRFP} onChange={(e) => handleSelectedRFP(e)}>
-          {attributes.map((rfp, index) => (
-            <option key={index} value={rfp}> {rfp} </option>
-          ))}
-        </select>
-        </div>
+  {/* Total Amount (single column, aligned) */}
+  <div className="flex items-center gap-6 mb-4">
+    <label htmlFor="amount" className="w-24 font-semibold text-gray-700">Total Amount:</label>
+    <input type="text" name="Amount" className="flex-1 px-3 py-2 border rounded bg-gray-100"
+      onChange={handleChanges} value={selectedTotalAmnt} required disabled />
+  </div>
 
+  {/* Date Paid (single column, aligned with above) */}
+  <div className="flex items-center gap-6 mb-4">
+    <label htmlFor="date" className="w-24 font-semibold text-gray-700">Date Paid:</label>
+    <input type="date" name="Date_Paid" className="flex-1 px-3 py-2 border rounded"
+      onChange={handleChanges} required />
+  </div>
 
-        <div className="payee-container">
-          <label htmlFor="name">Payee:</label>
-          <input type="text" name="Name"
-          onChange={(e) => handleChanges(e)} value={selectedPayee} required disabled />
-        </div>
+  {/* Purpose (single column, aligned) */}
+  <div className="flex items-center gap-6 mb-4">
+    <label htmlFor="purpose" className="w-24 font-semibold text-gray-700">Purpose:</label>
+    <select name="Purpose" id="purpose" className="flex-1 px-3 py-2 border rounded" onChange={handleChanges}>
+      <option value="">Select Purpose</option>
+      <option value="Purchase Goods">Purchase Goods</option>
+      <option value="Service Payment">Service Payment</option>
+      <option value="Rent Payment">Rent Payment</option>
+      <option value="Utility Bills">Utility Bills</option>
+      <option value="Employee Reimbursement">Employee Reimbursement</option>
+    </select>
+  </div>
 
+  {/* Paid By (single column, aligned) */}
+  <div className="flex items-center gap-6 mb-4">
+    <label htmlFor="paid" className="w-24 font-semibold text-gray-700">Paid By: <span className="italic text-gray-400">*</span></label>
+    <input type="text" name="Paid_By" className="flex-1 px-3 py-2 border rounded"
+      onChange={handleChanges} value={values.Paid_By} required />
+  </div>
 
-        <div className="amount-container">
-          <label htmlFor="amount">Total Amount:</label>
-          <input type="text" name="Amount" className="amount"
-          onChange={(e) => handleChanges(e)} value={selectedTotalAmnt} required disabled/>
+          <hr className="my-6" />
 
-          <label htmlFor="date">Date Paid:</label>
-          <input type="date" name="Date_Paid" className="date"
-          onChange={(e) => handleChanges(e)} required />
-        </div>
+          <h2 className="text-xl font-bold mb-4 text-gray-700">Bookkeeping/Accounting</h2>
 
-
-        <div className="purpose-container">
-        <label htmlFor="purpose">Purpose:</label>
-        <select name="Purpose" id="purpose" className="purpose" onChange={(e) => handleChanges(e)}>
-          <option value="Purchase Goods">Purchase Goods</option>
-          <option value="Service Payment">Service Payment</option>
-          <option value="Rent Payment">Rent Payment</option>
-          <option value="Utility Bills">Utility Bills</option>
-          <option value="Employee Reimbursement">Employee Reimbursement</option>
-        </select>
-        <label htmlFor="receive">Received by:</label>
-          <input type="text" name="Received_By" className="receive"
-            onChange={(e) => handleChanges(e)} value={values.Received_By} required />
-        </div>
-
-
-        <div className="fill-container">
-        <label htmlFor="paid">Paid By: <span className='treasurer'>*Treasurer</span></label>
-        <input type="text" name="Paid_By" className="paid"
-        onChange={(e) => handleChanges(e)} value={values.Paid_By} required />
-        <label htmlFor="receive">SI No:</label>
-          <input type="text" name="SI_NO" className="sino" value={values.SI_NO}
-            onChange={(e) => handleChanges(e)} required disabled/>
-        </div>
-        <hr></hr>
-
-
-        <h2>Bookkeeping/Accounting</h2>
-
-        {values2.map((account, index) => (
-            <div key={index} className="checkform" style={{ backgroundColor: '#f0f0f0', border: '2px solid #ccc', padding: '20px', borderRadius: '1px', marginBottom: '10px' }}>
-              <div className="account-header"><span>Account {index + 1}</span></div>
-              
-              <div className="account-container">
-                <label htmlFor={`account-${index}`}>Account No:</label>
+          {values2.map((account, index) => (
+            <div key={index} className="bg-gray-100 border-2 border-gray-300 p-6 rounded mb-4">
+              <div className="mb-2 font-semibold text-gray-700">Account {index + 1}</div>
+              <div className="flex flex-wrap items-center gap-6 mb-2">
+                <label htmlFor={`account-${index}`} className="w-32 font-semibold text-gray-700">Account No:</label>
                 <input
                   type="text"
                   name="Account_ID"
-                  className="account"
+                  className="flex-1 px-3 py-2 border rounded"
                   value={account.Account_ID}
                   onChange={(e) => handleChanges2(e, index)}
                   required
                 />
-                <label htmlFor={`debit-${index}`}>Debit Amount:</label>
+                <label htmlFor={`debit-${index}`} className="w-32 font-semibold text-gray-700">Debit Amount:</label>
                 <input
                   type="text"
                   name="Debit_Amount"
-                  className="debit"
+                  className="flex-1 px-3 py-2 border rounded"
                   value={account.Debit_Amount ?? ""}
                   onChange={(e) => handleChanges2(e, index)}
-                  placeholder='0'
+                  placeholder="0"
                 />
               </div>
-
-              <div className="account-container">
-                <label htmlFor={`accountname-${index}`}>Account Name:</label>
+              <div className="flex flex-wrap items-center gap-6 mb-2">
+                <label htmlFor={`accountname-${index}`} className="w-32 font-semibold text-gray-700">Account Name:</label>
                 <input
                   type="text"
                   name="Account_Name"
-                  className="accountname"
+                  className="flex-1 px-3 py-2 border rounded"
                   value={account.Account_Name}
                   onChange={(e) => handleChanges2(e, index)}
                   required
                 />
-                <label htmlFor={`credit-${index}`}>Credit Amount:</label>
+                <label htmlFor={`credit-${index}`} className="w-32 font-semibold text-gray-700">Credit Amount:</label>
                 <input
                   type="text"
                   name="Credit_Amount"
-                  className="credit"
+                  className="flex-1 px-3 py-2 border rounded"
                   value={account.Credit_Amount ?? ""}
                   onChange={(e) => handleChanges2(e, index)}
-                  placeholder='0'
+                  placeholder="0"
                 />
               </div>
-
-              <div className="check-container">
-                <label htmlFor={`checkno-${index}`}>Check No:</label>
+              <div className="flex flex-wrap items-center gap-6">
+                <label htmlFor={`checkno-${index}`} className="w-32 font-semibold text-gray-700">Check No:</label>
                 <select
                   name="Check_No"
                   id={`checkno-${index}`}
-                  className="checkno"
+                  className="flex-1 px-3 py-2 border rounded"
                   value={account.Check_No}
                   onChange={(e) => handleChanges2(e, index)}
                 >
+                  <option value="">Select Check</option>
                   {checkNumbers.map((checkNo, idx) => (
                     <option key={idx} value={checkNo}>{checkNo}</option>
                   ))}
                 </select>
-                <label htmlFor={`checkamt-${index}`}>Check Amount:</label>
+                <label htmlFor={`checkamt-${index}`} className="w-32 font-semibold text-gray-700">Check Amount:</label>
                 <input
                   type="text"
                   name="Check_Amount"
-                  className="credit"
+                  className="flex-1 px-3 py-2 border rounded bg-gray-100"
                   value={account.Check_Amount || 0}
                   onChange={(e) => handleChanges2(e, index)}
                   disabled
@@ -583,39 +550,33 @@ function PaymentVoucher() {
             </div>
           ))}
 
-        <div className="added_account_container">
-          {elements.map((el,index) =>
-          <div key={index}>
-              {el}
-            </div>
-          )}
-        </div>
+          <div className="flex gap-4 mb-4">
+            <button type="button" className="px-6 py-2 rounded bg-green-200 hover:bg-green-300 font-semibold" onClick={addElement}>Add Account</button>
+            <button type="button" className="px-6 py-2 rounded bg-red-200 hover:bg-red-300 font-semibold" onClick={removeElement} disabled={values2.length <= 1}>Remove Account</button>
+          </div>
 
+          <div className="flex flex-wrap items-center gap-6 mb-4">
+            <label htmlFor="recorded" className="w-32 font-semibold text-gray-700">Recorded By:</label>
+            <select name="Recorded_By" id="recorded" className="flex-1 px-3 py-2 border rounded" value={values2[0].Recorded_By} onChange={handleChanges2}>
+              <option value="Barry Simmons">Barry Simmons</option>
+              <option value="Larry Smith">Larry Smith</option>
+              <option value="Lucy Parrot">Lucy Parrot</option>
+            </select>
+            <label htmlFor="daterec" className="w-32 font-semibold text-gray-700">Date Recorded:</label>
+            <input type="date" name="Date_Recorded" className="flex-1 px-3 py-2 border rounded"
+              onChange={handleChanges2} required />
+          </div>
 
-        <div className="recorded-container">
-        <label htmlFor="recorded">Recorded By:</label>
-        <select name="Recorded_By" id="recorded" className="recorded" value={values2[0].Recorded_By} onChange={(e) => handleChanges2(e)}>
-          <option value="Barry Simmons">Barry Simmons</option>
-          <option value="Larry Smith">Larry Smith</option>
-          <option value="Lucy Parrot">Lucy Parrot</option>
-        </select>
-        <label htmlFor="daterec">Date Recorded:</label>
-        <input type="date" name="Date_Recorded" className="daterec"
-        onChange={(e) => handleChanges2(e)} required />
-        </div>
+          <hr className="my-6" />
 
-
-        <button type="button" className="add-button" onClick={addElement}>Add Account</button>
-        <button type="button" className="remove-button" onClick={removeElement} disabled={values2.length <= 1}>Remove Account</button>
-
-        <hr></hr>
-
-        <button type="button" className="cancel-button" onClick={() => navigate('/')}>Cancel</button>
-        <button type="submit" className="save-button">Save</button>
-        <button type="submit" className="save-button" onClick={generateTableForPrint} >Print</button>
-      </form>
-    </div>
-    <Footer />
+          <div className="flex gap-4 justify-end">
+            <button type="button" className="px-6 py-2 rounded bg-gray-300 hover:bg-gray-400 font-semibold" onClick={() => navigate('/')}>Cancel</button>
+            <button type="submit" className="px-6 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 font-semibold">Save</button>
+            <button type="button" className="px-6 py-2 rounded bg-yellow-400 text-white hover:bg-yellow-500 font-semibold" onClick={generateTableForPrint}>Print</button>
+          </div>
+        </form>
+      </div>
+      <Footer />
     </>
   );
 }
