@@ -20,7 +20,7 @@ function App()
         <Route path="/paymentslogbook" element={<PaymentsLogbook />} />
         <Route path="/payslipUI" element={<PayslipUI />} />
         <Route path="/payslip-form" element={<PayslipForm />} />
-        <Route path="/payslip/:id" element={<Payslip />} />
+        <Route path="/payslip/:payslipId" element={<Payslip />} />
       </Routes>
     </Router>
   )
