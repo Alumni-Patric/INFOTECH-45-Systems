@@ -2,6 +2,7 @@
 import React from 'react';
 import PaymentVoucher from './pages/PaymentVoucher';
 import PaymentVoucherTable from './pages/PaymentVoucherTable';
+import PaymentVoucherForm from './pages/PaymentVoucherForm';
 import PayslipUI from './pages/PayslipUI';
 import Payslip from "./pages/Payslip";
 import PayslipForm from "./pages/PayslipForm";
@@ -17,6 +18,7 @@ function App()
         <Route path="/" element={<PVHomePage />} />
         <Route path="/payment-voucher" element={<PaymentVoucher />} />
         <Route path="/payment-voucher-table" element={<PaymentVoucherTable />} />
+        <Route path="/payment-voucher-form/:id?" element={<PaymentVoucherForm />} />
         <Route path="/paymentslogbook" element={<PaymentsLogbook />} />
         <Route path="/payslipUI" element={<PayslipUI />} />
         <Route path="/payslip-form" element={<PayslipForm />} />

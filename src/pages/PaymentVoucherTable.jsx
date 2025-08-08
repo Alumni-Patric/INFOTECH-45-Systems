@@ -48,8 +48,8 @@ export default function PaymentVoucherTable() {
     };
 
     const handleEdit = (id) => {
-        // Navigate to edit form with voucher ID
-        navigate(`/payment-voucher/edit/${id}`);
+        // Navigate to payment voucher form with voucher ID
+        navigate(`/payment-voucher-form/${id}`);
     };
     
     return (

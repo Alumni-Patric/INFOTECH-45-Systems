@@ -278,66 +278,6 @@ function PaymentVoucher() {
   };
 
   const generateTableForPrint = () => {
-    const paymentTable = `
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-        <thead>
-          <tr style="background-color: #f2f2f2;">
-            <th style="border: 1px solid #ddd; padding: 8px;">Name</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">PV_NO</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">Amount</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">RFP_NO</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">Purpose</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">Paid_By</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">Date_Paid</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">Received_By</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">SI_NO</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-              <td style="border: 1px solid #ddd; padding: 8px;">${values.Name || ''}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${values.PV_NO || ''}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${values.Amount || ''}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${values.RFP_NO || ''}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${values.Purpose || ''}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${values.Paid_By || ''}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${values.Date_Paid || ''}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${values.Received_By || ''}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${values.SI_NO || ''}</td>
-            </tr>
-        </tbody>
-      </table>`;
-
-    const accountingTable = `
-      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-        <thead>
-          <tr style="background-color: #f2f2f2;">
-            <th style="border: 1px solid #ddd; padding: 8px;">Account No</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">Account Name</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">Debit</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">Credit</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">Check No</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">Check Amount</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">Recorded By</th>
-            <th style="border: 1px solid #ddd; padding: 8px;">Date Recorded</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${values2.map(account => `
-            <tr>
-              <td style="border: 1px solid #ddd; padding: 8px;">${account.Account_ID}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${account.Account_Name}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${account.Debit_Amount}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${account.Credit_Amount}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${account.Check_No}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${account.Check_Amount}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${account.Recorded_By}</td>
-              <td style="border: 1px solid #ddd; padding: 8px;">${account.Date_Recorded}</td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>`;
-
     const printWindow = window.open("", "_blank");
     printWindow.document.open();
     printWindow.document.write(`
@@ -345,30 +285,242 @@ function PaymentVoucher() {
         <head>
           <title>Payment Voucher</title>
           <style>
-            table {
-              border-collapse: collapse;
-              width: 100%;
+            body {
               font-family: Arial, sans-serif;
+              margin: 20px;
+              font-size: 12px;
+              line-height: 1.4;
             }
-            th, td {
-              border: 1px solid #ddd;
-              text-align: left;
-              padding: 8px;
+            .header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 20px;
+              border-bottom: 2px solid #000;
+              padding-bottom: 10px;
             }
-            th {
-              background-color: #f4f4f4;
+            .company-info {
+              display: flex;
+              align-items: center;
+            }
+            .chair-icon {
+              width: 60px;
+              height: 60px;
+              border: 2px solid #000;
+              margin-right: 15px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 8px;
+            }
+            .company-text {
+              font-weight: bold;
+              font-size: 14px;
+            }
+            .voucher-title {
+              font-size: 24px;
+              font-weight: bold;
+              text-align: center;
+            }
+            .voucher-numbers {
+              text-align: right;
               font-weight: bold;
             }
-            tr:nth-child(even) {
-              background-color: #f9f9f9;
+            .form-section {
+              margin-bottom: 20px;
+            }
+            .form-row {
+              display: flex;
+              margin-bottom: 10px;
+              align-items: center;
+            }
+            .form-label {
+              font-weight: bold;
+              margin-right: 10px;
+              min-width: 100px;
+            }
+            .form-input {
+              border-bottom: 1px solid #000;
+              flex: 1;
+              padding: 2px 5px;
+              margin-right: 20px;
+            }
+            .signature-section {
+              display: flex;
+              justify-content: space-between;
+              margin: 20px 0;
+            }
+            .signature-box {
+              text-align: center;
+              min-width: 200px;
+            }
+            .signature-line {
+              border-bottom: 1px solid #000;
+              margin-bottom: 5px;
+              height: 40px;
+            }
+            .check-section {
+              display: flex;
+              gap: 20px;
+              margin: 20px 0;
+            }
+            .accounting-header {
+              background-color: #f0f0f0;
+              text-align: center;
+              font-weight: bold;
+              padding: 10px;
+              border: 1px solid #000;
+              margin: 20px 0 10px 0;
+            }
+            .accounting-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+            }
+            .accounting-table th,
+            .accounting-table td {
+              border: 1px solid #000;
+              padding: 8px;
+              text-align: center;
+            }
+            .accounting-table th {
+              background-color: #f0f0f0;
+              font-weight: bold;
+            }
+            .bottom-signature {
+              display: flex;
+              justify-content: space-between;
+              margin-top: 30px;
+            }
+            .bottom-signature-box {
+              text-align: center;
+              min-width: 200px;
+            }
+            .bottom-signature-line {
+              border-bottom: 1px solid #000;
+              margin-bottom: 5px;
+              height: 40px;
             }
           </style>
         </head>
         <body>
-          <h1>Payment Voucher Details</h1>
-          ${paymentTable}
-          <h1>Accounting Details</h1>
-          ${accountingTable}
+          <div class="header">
+            <div class="company-info">
+              <div class="chair-icon">
+                🪑
+              </div>
+              <div class="company-text">
+                Galanter & Jones SLA. Inc.<br>
+                <span style="font-size: 10px; font-style: italic;">Heated Outdoor Furniture</span>
+              </div>
+            </div>
+            <div class="voucher-title">Payment Voucher</div>
+            <div class="voucher-numbers">
+              PV No: <span style="border-bottom: 1px solid #000; padding: 2px 10px;">${values.PV_NO || '_____________'}</span><br><br>
+              RFP No: <span style="border-bottom: 1px solid #000; padding: 2px 10px;">${values.RFP_NO || '_____________'}</span>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-row">
+              <span class="form-label">Payee:</span>
+              <span class="form-input">${values.Name || '_'.repeat(50)}</span>
+            </div>
+            
+            <div class="form-row" style="margin-top: 20px;">
+              <span class="form-label">Total Amount:</span>
+              <span class="form-input">₱${values.Amount ? Number(values.Amount).toLocaleString() : '_'.repeat(20)}</span>
+            </div>
+            
+            <div class="form-row" style="margin-top: 20px;">
+              <span class="form-label">Purpose:</span>
+              <span class="form-input">${values.Purpose || '_'.repeat(60)}</span>
+            </div>
+          </div>
+
+          <div class="signature-section">
+            <div class="signature-box">
+              <div style="font-weight: bold; margin-bottom: 10px;">Paid by:</div>
+              <div style="font-weight: bold; margin-bottom: 5px;">Treasurer</div>
+              <div class="signature-line"></div>
+              <div style="font-size: 10px; font-style: italic;">(Signature over printed name)</div>
+            </div>
+            <div class="signature-box">
+              <div style="font-weight: bold; margin-bottom: 40px;">Date Paid:</div>
+              <div style="border-bottom: 1px solid #000; padding: 2px 10px; margin-bottom: 20px;">
+                ${values.Date_Paid || '_____________'}
+              </div>
+            </div>
+          </div>
+
+          <div class="check-section">
+            <div>
+              <span style="font-weight: bold;">Check #:</span>
+              <span style="border-bottom: 1px solid #000; padding: 2px 15px; margin-left: 10px;">
+                ${values2[0]?.Check_No || '_'.repeat(15)}
+              </span>
+            </div>
+            <div>
+              <span style="font-weight: bold;">Check Amount:</span>
+              <span style="border-bottom: 1px solid #000; padding: 2px 15px; margin-left: 10px;">
+                ₱${values2[0]?.Check_Amount ? Number(values2[0].Check_Amount).toLocaleString() : '_'.repeat(15)}
+              </span>
+            </div>
+          </div>
+
+          <div class="accounting-header">
+            TO BE FILLED UP BY BOOKKEEPER/ACCOUNTING PERSONNEL
+          </div>
+
+          <table class="accounting-table">
+            <thead>
+              <tr>
+                <th>Account No</th>
+                <th>Account Name:</th>
+                <th>Debit - Amount</th>
+                <th>Credit - Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${values2.map(account => `
+                <tr>
+                  <td>${account.Account_ID || '_'.repeat(8)}</td>
+                  <td>${account.Account_Name || '_'.repeat(20)}</td>
+                  <td>₱${account.Debit_Amount ? Number(account.Debit_Amount).toLocaleString() : '_'.repeat(10)}</td>
+                  <td>₱${account.Credit_Amount ? Number(account.Credit_Amount).toLocaleString() : '_'.repeat(10)}</td>
+                </tr>
+              `).join("")}
+              ${Array(3 - values2.length).fill().map(() => `
+                <tr>
+                  <td>${'_'.repeat(8)}</td>
+                  <td>${'_'.repeat(20)}</td>
+                  <td>${'_'.repeat(10)}</td>
+                  <td>${'_'.repeat(10)}</td>
+                </tr>
+              `).join("")}
+              <tr style="border-top: 2px solid #000;">
+                <td colspan="2" style="text-align: right; font-weight: bold;">Total:</td>
+                <td style="border-bottom: 2px solid #000;">${'_'.repeat(10)}</td>
+                <td style="border-bottom: 2px solid #000;">${'_'.repeat(10)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="bottom-signature">
+            <div class="bottom-signature-box">
+              <div style="font-weight: bold; margin-bottom: 10px;">Recorded by:</div>
+              <div style="font-weight: bold; margin-bottom: 5px;">Bookkeeper/Accounting</div>
+              <div class="bottom-signature-line"></div>
+              <div style="font-size: 10px; font-style: italic;">(Signature over printed name)</div>
+            </div>
+            <div class="bottom-signature-box">
+              <div style="font-weight: bold; margin-bottom: 40px;">Date Recorded:</div>
+              <div style="border-bottom: 1px solid #000; padding: 2px 10px; margin-bottom: 20px;">
+                ${values2[0]?.Date_Recorded || '_____________'}
+              </div>
+            </div>
+          </div>
+
           <script>
             window.onload = function() {
               window.print();
@@ -410,71 +562,74 @@ function PaymentVoucher() {
   useEffect(() => {
     fetchRFP();
     fetchCheckNoAmount();
-    // eslint-disable-next-line
   }, []);
+
+  const handlePrint = () => {
+    window.print();
+  }
 
   return (
     <>
       <Navbar />
-      <div className="max-w-4xl mx-auto bg-white shadow-lg border-none mt-16 p-10 rounded-lg">
+      <div className="print-area max-w-4xl mx-auto bg-white shadow-lg border-none mt-16 p-10 rounded-lg">
         <form className="space-y-6" onSubmit={handleSubmit}>
-  <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Payment Voucher</h2>
+          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Payment Voucher</h2>
 
-  {/* PV No and RFP No (two columns) */}
-  <div className="flex flex-wrap items-center gap-6 mb-4">
-    <label htmlFor="pvno" className="w-24 font-semibold text-gray-700">PV No:</label>
-    <input type="text" name="PV_NO" className="flex-1 px-3 py-2 border rounded bg-gray-100" value={values.PV_NO}
-      onChange={handleChanges} required disabled />
-    <label htmlFor="rfpno" className="w-24 font-semibold text-gray-700">RFP No:</label>
-    <select type="text" name="RFP_NO" id="rfpno" className="flex-1 px-3 py-2 border rounded" value={selectedRFP} onChange={handleSelectedRFP}>
-      <option value="">Select RFP</option>
-      {attributes.map((rfp, index) => (
-        <option key={index} value={rfp}> {rfp} </option>
-      ))}
-    </select>
-  </div>
+          {/* PV No and RFP No (two columns) */}
+          <div className="flex flex-wrap items-center gap-6 mb-4">
+            <label htmlFor="pvno" className="w-24 font-semibold text-gray-700">PV No:</label>
+            <input type="text" name="PV_NO" className="flex-1 px-3 py-2 border rounded bg-gray-100" value={values.PV_NO}
+              onChange={handleChanges} required disabled />
+            <label htmlFor="rfpno" className="w-24 font-semibold text-gray-700">RFP No:</label>
+            <select type="text" name="RFP_NO" id="rfpno" className="flex-1 px-3 py-2 border rounded" value={selectedRFP} onChange={handleSelectedRFP}>
+              <option value="">Select RFP</option>
+              {attributes.map((rfp, index) => (
+                <option key={index} value={rfp}> {rfp} </option>
+              ))}
+            </select>
+          </div>
 
-  {/* Payee (single column, aligned) */}
-  <div className="flex items-center gap-6 mb-4">
-    <label htmlFor="name" className="w-24 font-semibold text-gray-700">Payee:</label>
-    <input type="text" name="Name"
-      onChange={handleChanges} value={selectedPayee} required disabled
-      className="flex-1 px-3 py-2 border rounded bg-gray-100" />
-  </div>
+          {/* Payee (single column, aligned) */}
+          <div className="flex items-center gap-6 mb-4">
+            <label htmlFor="name" className="w-24 font-semibold text-gray-700">Payee:</label>
+            <input type="text" name="Name"
+              onChange={handleChanges} value={selectedPayee} required disabled
+              className="flex-1 px-3 py-2 border rounded bg-gray-100" />
+          </div>
 
-  {/* Total Amount (single column, aligned) */}
-  <div className="flex items-center gap-6 mb-4">
-    <label htmlFor="amount" className="w-24 font-semibold text-gray-700">Total Amount:</label>
-    <input type="text" name="Amount" className="flex-1 px-3 py-2 border rounded bg-gray-100"
-      onChange={handleChanges} value={selectedTotalAmnt} required disabled />
-  </div>
+          {/* Total Amount (single column, aligned) */}
+          <div className="flex items-center gap-6 mb-4">
+            <label htmlFor="amount" className="w-24 font-semibold text-gray-700">Total Amount:</label>
+            <input type="text" name="Amount" className="flex-1 px-3 py-2 border rounded bg-gray-100"
+              onChange={handleChanges} value={selectedTotalAmnt} required disabled />
+          </div>
 
-  {/* Date Paid (single column, aligned with above) */}
-  <div className="flex items-center gap-6 mb-4">
-    <label htmlFor="date" className="w-24 font-semibold text-gray-700">Date Paid:</label>
-    <input type="date" name="Date_Paid" className="flex-1 px-3 py-2 border rounded"
-      onChange={handleChanges} required />
-  </div>
+          {/* Date Paid (single column, aligned with above) */}
+          <div className="flex items-center gap-6 mb-4">
+            <label htmlFor="date" className="w-24 font-semibold text-gray-700">Date Paid:</label>
+            <input type="date" name="Date_Paid" className="flex-1 px-3 py-2 border rounded"
+              onChange={handleChanges} required />
+          </div>
 
-  {/* Purpose (single column, aligned) */}
-  <div className="flex items-center gap-6 mb-4">
-    <label htmlFor="purpose" className="w-24 font-semibold text-gray-700">Purpose:</label>
-    <select name="Purpose" id="purpose" className="flex-1 px-3 py-2 border rounded" onChange={handleChanges}>
-      <option value="">Select Purpose</option>
-      <option value="Purchase Goods">Purchase Goods</option>
-      <option value="Service Payment">Service Payment</option>
-      <option value="Rent Payment">Rent Payment</option>
-      <option value="Utility Bills">Utility Bills</option>
-      <option value="Employee Reimbursement">Employee Reimbursement</option>
-    </select>
-  </div>
+          {/* Purpose (single column, aligned) */}
+          <div className="flex items-center gap-6 mb-4">
+            <label htmlFor="purpose" className="w-24 font-semibold text-gray-700">Purpose:</label>
+            <select name="Purpose" id="purpose" className="flex-1 px-3 py-2 border rounded" onChange={handleChanges}>
+              <option value="">Select Purpose</option>
+              <option value="Purchase Goods">Purchase Goods</option>
+              <option value="Service Payment">Service Payment</option>
+              <option value="Rent Payment">Rent Payment</option>
+              <option value="Utility Bills">Utility Bills</option>
+              <option value="Employee Reimbursement">Employee Reimbursement</option>
+            </select>
+          </div>
 
-  {/* Paid By (single column, aligned) */}
-  <div className="flex items-center gap-6 mb-4">
-    <label htmlFor="paid" className="w-24 font-semibold text-gray-700">Paid By: <span className="italic text-gray-400">*</span></label>
-    <input type="text" name="Paid_By" className="flex-1 px-3 py-2 border rounded"
-      onChange={handleChanges} value={values.Paid_By} required />
-  </div>
+          {/* Paid By (single column, aligned) */}
+          <div className="flex items-center gap-6 mb-4">
+            <label htmlFor="paid" className="w-24 font-semibold text-gray-700">Paid By: <span className="italic text-gray-400">*</span></label>
+            <input type="text" name="Paid_By" className="flex-1 px-3 py-2 border rounded"
+              onChange={handleChanges} value={values.Paid_By} required />
+          </div>
 
           <hr className="my-6" />
 
@@ -572,7 +727,7 @@ function PaymentVoucher() {
           <div className="flex gap-4 justify-end">
             <button type="button" className="px-6 py-2 rounded bg-gray-300 hover:bg-gray-400 font-semibold" onClick={() => navigate('/')}>Cancel</button>
             <button type="submit" className="px-6 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 font-semibold">Save</button>
-            <button type="button" className="px-6 py-2 rounded bg-yellow-400 text-white hover:bg-yellow-500 font-semibold" onClick={generateTableForPrint}>Print</button>
+            <button type="button" className="px-6 py-2 rounded bg-yellow-400 text-white hover:bg-yellow-500 font-semibold" onClick={handlePrint}>Print</button>
           </div>
         </form>
       </div>
