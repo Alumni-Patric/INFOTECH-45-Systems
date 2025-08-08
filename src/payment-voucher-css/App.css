@@ -1,11 +1,8 @@
 @media print {
-  .site-navbar, .site-footer {
-    display: none !important;
-  }
-  
   *{
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    color-adjust: exact;
   }
 
   /* Hide everything by default */
@@ -24,5 +21,11 @@
     left: 0;
     top: 0;
     width: 100%;
+  }
+
+  /*Hide navbars and footers by class or tag as a fallback */
+  nav, .site-navbar, footer, .site-footer, button, .non-print {
+    display: none !important;
+    visibility: hidden !important;
   }
 }

@@ -51,12 +51,29 @@ const PayrollSlip = () => {
   const netPay = totalPayAfterDeductions + honorarium + allowance;
 
   const handlePrint = () => {
+    // Hide the navbar and footer during printing
+    const navbar = document.querySelector('.site-navbar');
+    const footer = document.querySelector('.site-footer');
+    const nonPrintElements = document.querySelectorAll('.non-print');
+    if (navbar) navbar.style.display = 'none';
+    if (footer) footer.style.display = 'none';
+    if (nonPrintElements) {
+      nonPrintElements.forEach(el => el.style.display = 'none');
+    }
     window.print();
+
+    // Restore the navbar and footer after printing
+    setTimeout(() => {
+      if (navbar) navbar.style.display = '';
+      if (footer) footer.style.display = '';
+      if (nonPrintElements) {
+        nonPrintElements.forEach(el => el.style.display = '')};
+    }, 1000);
   }
 
   return (
     <>
-    <Navbar  className="site-navbar"/>
+    <Navbar className="site-navbar"/>
     <div className="print-area max-w-xl mx-auto border border-black font-sans text-sm mt-5 mb-5">
 
       <table className="w-full border text-sm">
@@ -166,7 +183,7 @@ const PayrollSlip = () => {
     </div>
     
     {/*Buttons Section*/}
-    <div className="flex justify-between max-w-xl mx-auto mt-4 mb-4">
+    <div className="flex justify-between max-w-xl mx-auto mt-4 mb-4 non-print">
       <button 
         className="px-30 py-2 border-none rounded cursor-pointer bg-gray-500 text-white hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={() => navigate('/payslipUI')}
@@ -180,7 +197,7 @@ const PayrollSlip = () => {
           Print
         </button>
     </div>
-    <Footer className="site-foother"/>
+    <Footer className="site-footer"/>
     </>
   );
 };
