@@ -56,7 +56,7 @@ const PayrollSlip = () => {
 
   return (
     <>
-    <Navbar />
+    <Navbar  className="site-navbar"/>
     <div className="print-area max-w-xl mx-auto border border-black font-sans text-sm mt-5 mb-5">
 
       <table className="w-full border text-sm">
@@ -180,7 +180,7 @@ const PayrollSlip = () => {
           Print
         </button>
     </div>
-    <Footer />
+    <Footer className="site-foother"/>
     </>
   );
 };
