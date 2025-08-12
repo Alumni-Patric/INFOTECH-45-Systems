@@ -20,16 +20,7 @@ function PaymentVoucher() {
     }
     return dynamicNumber() + '-' + dynamicNumber() + '-' + dynamicNumber();
   };
-
-  const formattedSINo = () => {
-    const dynamicNumber = () => {
-      return Math.floor(Math.random() * 1e4)
-        .toString()
-        .padStart(4, "0");
-    }
-    return dynamicNumber() + '-' + dynamicNumber() + '-' + dynamicNumber();
-  };
-
+  
   const [attributes, setAttributes] = useState([]);
   const [payee, setPayee] = useState([]);
   const [totalAmnt, setTotalAmount] = useState([]);
@@ -120,15 +111,20 @@ function PaymentVoucher() {
     }
   };
 
+  //Automatically assign PV_NO when the component mounts
   useEffect(() => {
     const initialPV_NO = formattedPVNo();
     setValues((prev) => ({ ...prev, PV_NO: initialPV_NO }));
   }, []);
 
-  // useEffect(() => {
-  //   const initialSI_No = formattedSINo();
-  //   setValues((prev) => ({ ...prev, SI_NO: initialSI_No }));
-  // }, []);
+  //Automatically set today's date for Date_Recorded when the component mounts
+  useEffect(() => {
+  setValues2(prev => prev.map(account => ({
+    ...account,
+    Date_Recorded: new Date().toISOString().split("T")[0] // today's date
+  })));
+}, []);
+
 
   const [values, setValues] = useState({
     Name: "",
@@ -138,7 +134,9 @@ function PaymentVoucher() {
     Purpose: "",
     Paid_By: "",
     Date_Paid: "",
-    PV_Status: "Forwarded"
+    PV_Status: "Forwarded",
+    Recorded_By: "Barry Simmons",
+    Date_Recorded: new Date().toISOString().split("T")[0] // today's date
   });
 
   const [values2, setValues2] = useState([
@@ -149,13 +147,20 @@ function PaymentVoucher() {
       Credit_Amount: "",
       Check_No: "",
       Check_Amount: "",
-      Recorded_By: "Barry Simmons",
-      Date_Recorded: ""
     }
   ]);
 
   const handleChanges = (e) => {
-    setValues({ ...values, [e.target.name]: e.target.value });
+    const {name, value} = e.target;
+
+    if(name === "Date_Paid") {
+    const today = new Date().toISOString().split("T")[0];
+      if (value < today) {
+        return;
+      }
+    }
+    
+    setValues((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleChanges2 = (e, index) => {
@@ -182,11 +187,7 @@ function PaymentVoucher() {
         updated[index][name] = value;
         updated[index].Check_Amount = checkindex !== -1 ? checkAmounts[checkindex] : "";
         updated[index].Account_Name = checkindex !== -1 ? accountName[checkindex] : "";
-      } else if (name === "Recorded_By" || name === "Date_Recorded") {
-        updated.forEach((account) => {
-          account[name] = value;
-        });
-      } else {
+      }  else {
         updated[index][name] = value;
       }
       return updated;
@@ -200,35 +201,25 @@ function PaymentVoucher() {
     const snapshot = await getDocs(paymentCollectionRef);
     const existingIds = snapshot.docs.map((doc) => parseInt(doc.id.split('-')[1], 10)).filter((id) => !isNaN(id));
     const nextId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
-    const paymentDocId = `Payment-${nextId}`;
-    const accountingDocId = `Accounting-${nextId}`;
+    const paymentDocId = `Payment Voucher-${nextId}`;
+    // const accountingDocId = `Accounting-${nextId}`;
     const generatedPVNo = formattedPVNo();
 
+    //Prepare the full document to save
     const updatedValues = {
       ...values,
       PV_NO: generatedPVNo,
-    };
-
-    try {
-      await setDoc(doc(firestore, collectionName, paymentDocId), updatedValues);
-      console.log("Payment Voucher saved successfully!");
-    } catch (e) {
-      console.log(e);
-    }
-
-    try {
-      const accountsToSave = values2.map((account) => ({
+      Accounts: values2.map(account => ({
         ...account,
-        Recorded_By: values2[0]?.Recorded_By || "",
-        Date_Recorded: values2[0]?.Date_Recorded || "",
         Debit_Amount: account.Debit_Amount === '' ? 0 : parseFloat(account.Debit_Amount),
         Credit_Amount: account.Credit_Amount === '' ? 0 : parseFloat(account.Credit_Amount),
-      }));
+       })),
+      };
 
-      await setDoc(doc(firestore, collectionName, accountingDocId), {
-        Accounts: accountsToSave
-      });
-      console.log("Accounting records saved successfully!");
+    try {
+      //Save everything in one document
+      await setDoc(doc(firestore, collectionName, paymentDocId), updatedValues);
+      console.log("Payment Voucher saved successfully!");
     } catch (e) {
       console.log(e);
     }
@@ -264,7 +255,9 @@ function PaymentVoucher() {
       Purpose: "",
       Paid_By: "",
       Date_Paid: "",
-      PV_Status: "Forwarded"
+      PV_Status: "Forwarded",
+      Recorded_By: "Barry Simmons",
+      Date_Recorded: new Date().toISOString().split("T")[0] // today's date
     });
 
     setValues2([
@@ -275,8 +268,6 @@ function PaymentVoucher() {
         Credit_Amount: "",
         Check_No: "",
         Check_Amount: "",
-        Recorded_By: "Barry Simmons",
-        Date_Recorded: ""
       }
     ]);
 
@@ -552,8 +543,6 @@ function PaymentVoucher() {
         Credit_Amount: "",
         Check_No: "",
         Check_Amount: "",
-        Recorded_By: prev[0]?.Recorded_By || "",
-        Date_Recorded: prev[0]?.Date_Recorded || "",
       };
       return [...prev, newAccount];
     });
@@ -616,13 +605,13 @@ function PaymentVoucher() {
           <div className="flex items-center gap-6 mb-4">
             <label htmlFor="date" className="w-24 font-semibold text-gray-700">Date Paid:</label>
             <input type="date" name="Date_Paid" className="flex-1 px-3 py-2 border rounded"
-              onChange={handleChanges} required />
+              onChange={handleChanges} min={new Date().toISOString().split("T")[0]} value={values.Date_Paid} required />
           </div>
 
           {/* Purpose (single column, aligned) */}
           <div className="flex items-center gap-6 mb-4">
             <label htmlFor="purpose" className="w-24 font-semibold text-gray-700">Purpose:</label>
-            <select name="Purpose" id="purpose" className="flex-1 px-3 py-2 border rounded" onChange={handleChanges}>
+            <select name="Purpose" id="purpose" className="flex-1 px-3 py-2 border rounded" onChange={handleChanges} value={values.Purpose} required>
               <option value="">Select Purpose</option>
               <option value="Purchase Goods">Purchase Goods</option>
               <option value="Service Payment">Service Payment</option>
@@ -779,7 +768,7 @@ function PaymentVoucher() {
             </select>
             <label htmlFor="daterec" className="w-32 font-semibold text-gray-700">Date Recorded:</label>
             <input type="date" name="Date_Recorded" className="flex-1 px-3 py-2 border rounded"
-              onChange={handleChanges2} value={new Date().toISOString().split("T")[0]} required disabled />
+              value={values2[0]?.Date_Recorded} required readOnly />
           </div>
 
           <hr className="my-6" />
