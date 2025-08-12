@@ -14,10 +14,31 @@ export default function PaymentVoucherTable() {
         try {
             setLoading(true);
             const querySnapshot = await getDocs(collection(firestore, "Payment Voucher"));
-            const dataList = querySnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            
+            // Log all documents for debugging
+            console.log("All documents in Payment Voucher collection:");
+            querySnapshot.docs.forEach((doc, index) => {
+                console.log(`Document ${index}:`, {
+                    id: doc.id,
+                    data: doc.data()
+                });
+            });
+            
+            const dataList = querySnapshot.docs
+                .map((doc) => ({
+                    id: doc.id,
+                    ...doc.data()
+                }))
+                // Filter out any document that is not a payment voucher
+                .filter((doc) => {
+                    // Remove documents that are specifically marked as "Accounts"
+                    if (doc.Type === "Accounts") return false;
+                    
+                    // Only include documents that have essential payment voucher fields
+                    return doc.PV_NO && (doc.Name || doc.Payee) && doc.Amount !== undefined && doc.Amount !== null;
+                });
+
+            console.log("Filtered payment vouchers:", dataList);
 
             // Sort by date from latest to oldest (descending order)
             const sortedData = dataList.sort((a, b) => {
@@ -26,7 +47,6 @@ export default function PaymentVoucherTable() {
                 return dateB - dateA; // Latest to oldest
             });
 
-            console.log("Payment Voucher data (sorted by date - latest first):", sortedData); // Debug log
             setPaymentVouchers(sortedData);
         } catch (error) {
             console.log("Error fetching Payment Vouchers:", error);

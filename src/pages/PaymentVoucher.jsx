@@ -252,10 +252,10 @@ function PaymentVoucher() {
       console.error("Error saving Payment Logs: ", error);
     }
 
-    resetForm(generatedPVNo, generatedSINo);
+    resetForm(generatedPVNo);
   };
 
-  const resetForm = (generatedPVNo, generatedSINo) => {
+  const resetForm = (generatedPVNo) => {
     setValues({
       Name: "",
       PV_NO: generatedPVNo,

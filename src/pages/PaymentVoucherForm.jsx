@@ -11,6 +11,7 @@ function PaymentVoucherForm() {
   const navigate = useNavigate();
   const [voucherData, setVoucherData] = useState(null);
   const [accountingData, setAccountingData] = useState([]);
+  const [accountingMetadata, setAccountingMetadata] = useState({});
   const [loading, setLoading] = useState(true);
 
   const fetchVoucherData = async () => {
@@ -35,7 +36,12 @@ function PaymentVoucherForm() {
         const accountingDoc = await getDoc(doc(firestore, "Payment Voucher", accountingDocId));
         if (accountingDoc.exists()) {
           const accountingInfo = accountingDoc.data();
+          console.log("Full accounting document:", accountingInfo);
           setAccountingData(accountingInfo.Accounts || []);
+          setAccountingMetadata({
+            Date_Recorded: accountingInfo.Date_Recorded,
+            Recorded_By: accountingInfo.Recorded_By
+          });
         }
       }
     } catch (error) {
@@ -57,6 +63,10 @@ function PaymentVoucherForm() {
   const handleBack = () => {
     navigate('/payment-voucher-table');
   };
+
+  // Calculate totals for Debit and Credit Amounts
+  const totalDebitAmount = accountingData.reduce((acc, curr) => acc + (curr.Debit_Amount || 0), 0);
+  const totalCreditAmount = accountingData.reduce((acc, curr) => acc + (curr.Credit_Amount || 0), 0);
 
   if (loading) {
     return (
@@ -238,7 +248,7 @@ function PaymentVoucherForm() {
                 <td className="border border-black px-4 py-3 text-center">
                   {account.Account_ID || ''}
                 </td>
-                <td className="border border-black px-4 py-3">
+                <td className="border border-black px-4 py-3 text-center">
                   {account.Account_Name || ''}
                 </td>
                 <td className="border border-black px-4 py-3 text-center">
@@ -261,12 +271,16 @@ function PaymentVoucherForm() {
             ))}
             
             {/* Total Row */}
-            <tr className="border-t-2 border-black">
-              <td className="border border-black px-4 py-3 text-right font-bold" colSpan="2">
+            <tr>
+              <td className="px-4 py-3 text-right font-bold" colSpan="2">
                 Total:
               </td>
-              <td className="border border-black px-4 py-3 border-b-2"></td>
-              <td className="border border-black px-4 py-3 border-b-2"></td>
+              <td className="border px-4 py-3 text-center">
+                {totalDebitAmount ? `₱${Number(totalDebitAmount).toLocaleString()}` : ''}
+              </td>
+              <td className=" px-4 py-3 text-center">
+                {totalCreditAmount ? `₱${Number(totalCreditAmount).toLocaleString()}` : ''}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -293,7 +307,7 @@ function PaymentVoucherForm() {
               <span className="font-bold">Date Recorded:</span>
             </div>
             <div className="border-b border-black px-2 py-1 text-center">
-              {accountingData[0]?.Date_Recorded || ''}
+              {accountingMetadata.Date_Recorded || accountingData[0]?.Date_Recorded || ''}
             </div>
           </div>
         </div>
