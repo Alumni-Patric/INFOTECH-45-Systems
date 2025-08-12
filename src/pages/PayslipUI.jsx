@@ -9,12 +9,9 @@ import { firestore } from "../firebase.js";
 function PayslipUI() {
     const [payslips, setPayslips] = useState([]);
     const [search, setSearch] = useState("");
-    const [showModal, setShowModal] = useState(false);
-    const [selectedPayslip, setSelectedPayslip] = useState(null);
-    const [filePath, setFilePath] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState("all");
-    const [signatureFilter, setSignatureFilter] = useState("all");
+
 
     useEffect(() => {
         setIsLoading(true);
@@ -45,17 +42,14 @@ function PayslipUI() {
         .filter(p => p.Employee_Name?.toLowerCase().includes(search.toLowerCase()))
         .filter(p => {
             // Status filter
-            if (statusFilter !== "all" && p.Status !== statusFilter) {
-                return false;
+            if (statusFilter === "Approved") {
+                return p.signature; // Show only payslips with signatures
+            } else if (statusFilter === "Pending") {
+                return !p.signature && p.Status === "Pending"; // Show only pending payslips without signatures
+            } else if (statusFilter === "all") {
+                return true; // Show all payslips
             }
-            // Signature filter
-            if (signatureFilter === "hasSignature" && !p.filePath) {
-                return false;
-            }
-            if (signatureFilter === "noSignature" && p.filePath) {
-                return false;
-            }
-            return true;
+            return false;
         })
         .sort((a, b) => {
             // Sort by creation timestamp if available, otherwise by ID (newest first)
@@ -66,29 +60,7 @@ function PayslipUI() {
             return b.id.localeCompare(a.id);
         });
 
-    const openModal = (payslip) => {
-        setSelectedPayslip(payslip);
-        setFilePath(payslip.filePath || "");
-        setShowModal(true);
-    };
 
-    const closeModal = () => {
-        setShowModal(false);
-        setSelectedPayslip(null);
-        setFilePath("");
-    };
-
-    const handleSave = () => {
-        if (selectedPayslip && filePath.trim()) {
-            const updatedPayslips = payslips.map(p =>
-                p.id === selectedPayslip.id
-                    ? { ...p, filePath: filePath.trim() }
-                    : p
-            );
-            setPayslips(updatedPayslips);
-        }
-        closeModal();
-    };
 
     return (
         <>
@@ -124,8 +96,7 @@ function PayslipUI() {
                         >
                             <option value="all">All Status</option>
                             <option value="Pending">Pending</option>
-                            <option value="Paid">Paid</option>
-                            <option value="Overdue">Overdue</option>
+                            <option value="Approved">Approved</option>
                         </select>
                         <svg
                             className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#022073]"
@@ -143,32 +114,7 @@ function PayslipUI() {
                         </svg>
                     </div>
 
-                    {/* Signature Filter */}
-                    <div className="relative w-[180px] cursor-pointer">
-                        <select
-                            value={signatureFilter}
-                            onChange={(e) => setSignatureFilter(e.target.value)}
-                            className="h-10 pl-10 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-[#022073] focus:ring-2 focus:ring-[#022073]/20 bg-white w-full appearance-none cursor-pointer"
-                        >
-                            <option value="all">All Signatures</option>
-                            <option value="hasSignature">Has Signature</option>
-                            <option value="noSignature">No Signature</option>
-                        </select>
-                        <svg
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#022073]"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                            />
-                        </svg>
-                    </div>
+
 
                     {/* Search */}
                     <div className="relative w-[250px]">
@@ -206,20 +152,18 @@ function PayslipUI() {
                                     <col style={{ width: '150px' }} />
                                     <col style={{ width: '100px' }} />
                                     <col style={{ width: '120px' }} />
-                                    <col style={{ width: '150px' }} />
                                 </colgroup>
                                 <thead>
                                     <tr className="h-[67px] bg-[#F6F9F8] text-[#797979]">
                                         <th className="font-normal p-2">
-                                            <label className="inline-flex items-center gap-1.5 text-base text-[#797979] font-normal">
+                                            <label className="inline-flex items-center gap-1.5 text-base text-gray-700 font-normal">
                                                 <span>Name</span>
                                             </label>
                                         </th>
-                                        <th className="font-normal p-2">Designation</th>
-                                        <th className="font-normal p-2">Payment Period</th>
-                                        <th className="font-normal p-2">Status</th>
-                                        <th className="font-normal p-2">Action</th>
-                                        <th className="font-normal p-2">Signature</th>
+                                        <th className="font-normal p-2 text-gray-700">Designation</th>
+                                        <th className="font-normal p-2 text-gray-700">Payment Period</th>
+                                        <th className="font-normal p-2 text-gray-700">Status</th>
+                                        <th className="font-normal p-2 text-gray-700">Action</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -249,7 +193,6 @@ function PayslipUI() {
                                         <col style={{ width: '150px' }} />
                                         <col style={{ width: '100px' }} />
                                         <col style={{ width: '120px' }} />
-                                        <col style={{ width: '150px' }} />
                                     </colgroup>
                                     <tbody>
                                         {filteredPayslips.map((payslip) => (
@@ -261,26 +204,16 @@ function PayslipUI() {
                                                 </td>
                                                 <td className="p-2 border-b border-[#E8E8E8]">{payslip.Designation}</td>
                                                 <td className="p-2 border-b border-[#E8E8E8]">{payslip.Payment_Period}</td>
-                                                <td className={`p-2 border-b border-[#E8E8E8] ${payslip.Status === "Paid"
-                                                    ? "text-green-600"
-                                                    : payslip.Status === "Overdue"
-                                                        ? "text-red-600"
+                                                <td className={`p-2 border-b border-[#E8E8E8] ${payslip.signature
+                                                        ? "text-green-600"
                                                         : "text-orange-500"
                                                     }`}>
-                                                    {payslip.Status}
+                                                    {payslip.signature ? "Approved" : "Pending"}
                                                 </td>
                                                 <td className="p-2 border-b border-[#E8E8E8]">
                                                     <Link to={`/payslip/${payslip.id}`} className="text-[#2A03A9] underline font-semibold cursor-pointer">
                                                         View Payslip
                                                     </Link>
-                                                </td>
-                                                <td className="p-2 border-b border-[#E8E8E8]">
-                                                    <button
-                                                        className="bg-[#022073] text-white border-none rounded px-4 py-2 text-sm font-medium cursor-pointer transition-colors hover:bg-[#3e63cb]"
-                                                        onClick={() => openModal(payslip)}
-                                                    >
-                                                        {payslip.filePath ? "Edit Signature" : "Add Signature"}
-                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -292,38 +225,7 @@ function PayslipUI() {
                 </div>
             </div>
 
-            {/* File Path Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[1000]" onClick={closeModal}>
-                    <div className="bg-white rounded-lg w-[90%] max-w-[500px] shadow-lg" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex justify-between items-center p-5 pb-6 border-b border-[#E8E8E8]">
-                            <h3 className="m-0 text-lg font-semibold text-[#333]">File Path Upload</h3>
-                            <button className="bg-none border-none text-2xl cursor-pointer text-[#666] p-0 w-8 h-8 flex items-center justify-center hover:text-[#333]" onClick={closeModal}>×</button>
-                        </div>
-                        <div className="p-6">
-                            <div className="mb-5">
-                                <label htmlFor="filePathInput" className="block mb-2 font-medium text-[#333]">File Path:</label>
-                                <input
-                                    type="text"
-                                    id="filePathInput"
-                                    className="w-full h-10 px-3 py-2 border border-[#E8E8E8] rounded text-sm box-border focus:outline-none focus:border-[#022073] focus:shadow-[0_0_0_2px_rgba(2,32,115,0.1)]"
-                                    placeholder="Enter file path"
-                                    value={filePath}
-                                    onChange={(e) => setFilePath(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                        <div className="flex justify-end gap-3 p-5 pt-6 border-t border-[#E8E8E8]">
-                            <button className="py-2.5 px-5 rounded text-sm font-medium cursor-pointer border-none transition-colors bg-[#f5f5f5] text-[#333] hover:bg-[#e8e8e8]" onClick={closeModal}>
-                                Cancel
-                            </button>
-                            <button className="py-2.5 px-5 rounded text-sm font-medium cursor-pointer border-none transition-colors bg-[#022073] text-white hover:bg-[#3e63cb]" onClick={handleSave}>
-                                Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
 
             <Footer />
         </>
