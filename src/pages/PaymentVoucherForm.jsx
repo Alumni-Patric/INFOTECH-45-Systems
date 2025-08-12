@@ -4,6 +4,7 @@ import { doc, getDoc, getDocs, collection } from "firebase/firestore";
 import { firestore } from "../firebase.js";
 import Navbar from '../NewNavbar&Footer/navbar';
 import Footer from '../NewNavbar&Footer/footer';
+import Logo from '../assets/logo.png';
 
 function PaymentVoucherForm() {
   const { id } = useParams();
@@ -100,7 +101,7 @@ function PaymentVoucherForm() {
           {/* Company Info */}
           <div className="flex items-center">
             <div className="w-16 h-16 border-2 border-black flex items-center justify-center mr-4 text-2xl">
-              🪑
+              <img src={Logo} alt="Company Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <div className="font-bold text-lg">Galanter & Jones SLA. Inc.</div>
@@ -161,17 +162,21 @@ function PaymentVoucherForm() {
         </div>
 
         {/* Signature Section */}
-        <div className="flex justify-between mb-8">
+        <div className="flex w-max justify-between mb-8 space-x-67">
           {/* Paid By */}
           <div className="w-80">
             <div className="mb-2">
               <span className="font-bold">Paid by:</span>
             </div>
-            <div className="mb-2">
-              <span className="font-bold">Treasurer</span>
+            <div className="flex justify-center">
+              <div className="mb-2">
+                <span className="font-bold">Treasurer</span>
+              </div>
+              <div className="border-b border-black w-100 ml-16 mb-2">
+                {voucherData.Paid_By || ''}
+              </div>
             </div>
-            <div className="border-b border-black w-64 ml-21 mb-2"></div>
-            <div className="text-sm italic text-center ml-25">
+            <div className="text-sm italic text-center ml-30">
               (Signature over printed name)
             </div>
           </div>
