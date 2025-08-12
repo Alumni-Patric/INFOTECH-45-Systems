@@ -125,10 +125,10 @@ function PaymentVoucher() {
     setValues((prev) => ({ ...prev, PV_NO: initialPV_NO }));
   }, []);
 
-  useEffect(() => {
-    const initialSI_No = formattedSINo();
-    setValues((prev) => ({ ...prev, SI_NO: initialSI_No }));
-  }, []);
+  // useEffect(() => {
+  //   const initialSI_No = formattedSINo();
+  //   setValues((prev) => ({ ...prev, SI_NO: initialSI_No }));
+  // }, []);
 
   const [values, setValues] = useState({
     Name: "",
@@ -138,8 +138,6 @@ function PaymentVoucher() {
     Purpose: "",
     Paid_By: "",
     Date_Paid: "",
-    Received_By: "",
-    SI_NO: "",
     PV_Status: "Forwarded"
   });
 
@@ -205,12 +203,10 @@ function PaymentVoucher() {
     const paymentDocId = `Payment-${nextId}`;
     const accountingDocId = `Accounting-${nextId}`;
     const generatedPVNo = formattedPVNo();
-    const generatedSINo = formattedSINo();
 
     const updatedValues = {
       ...values,
       PV_NO: generatedPVNo,
-      SI_NO: generatedSINo
     };
 
     try {
@@ -268,8 +264,6 @@ function PaymentVoucher() {
       Purpose: "",
       Paid_By: "",
       Date_Paid: "",
-      Received_By: "",
-      SI_NO: generatedSINo,
       PV_Status: "Forwarded"
     });
 
