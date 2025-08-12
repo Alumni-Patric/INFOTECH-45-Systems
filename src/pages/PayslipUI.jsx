@@ -172,12 +172,36 @@ function PayslipUI() {
                         {/* Scrollable Body */}
                         <div className="overflow-y-auto max-h-[500px]">
                             {isLoading ? (
-                                <div className="flex items-center justify-center h-64">
-                                    <div className="flex flex-col items-center space-y-4">
-                                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#022073]"></div>
-                                        <p className="text-gray-600 text-lg">Loading payslips...</p>
-                                    </div>
-                                </div>
+                                <table className="w-full text-center border-collapse border-spacing-0 table-fixed">
+                                    <colgroup>
+                                        <col style={{ width: '200px' }} />
+                                        <col style={{ width: '150px' }} />
+                                        <col style={{ width: '150px' }} />
+                                        <col style={{ width: '100px' }} />
+                                        <col style={{ width: '120px' }} />
+                                    </colgroup>
+                                    <tbody>
+                                        {[...Array(5)].map((_, index) => (
+                                            <tr className="h-[67px] text-black" key={index}>
+                                                <td className="p-2 border-b border-[#E8E8E8]">
+                                                    <div className="h-4 bg-gray-200 rounded animate-pulse mx-auto w-24"></div>
+                                                </td>
+                                                <td className="p-2 border-b border-[#E8E8E8]">
+                                                    <div className="h-4 bg-gray-200 rounded animate-pulse mx-auto w-20"></div>
+                                                </td>
+                                                <td className="p-2 border-b border-[#E8E8E8]">
+                                                    <div className="h-4 bg-gray-200 rounded animate-pulse mx-auto w-28"></div>
+                                                </td>
+                                                <td className="p-2 border-b border-[#E8E8E8]">
+                                                    <div className="h-4 bg-gray-200 rounded animate-pulse mx-auto w-16"></div>
+                                                </td>
+                                                <td className="p-2 border-b border-[#E8E8E8]">
+                                                    <div className="h-4 bg-gray-200 rounded animate-pulse mx-auto w-20"></div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             ) : filteredPayslips.length === 0 ? (
                                 <div className="flex items-center justify-center h-64">
                                     <div className="text-center">
@@ -205,8 +229,8 @@ function PayslipUI() {
                                                 <td className="p-2 border-b border-[#E8E8E8]">{payslip.Designation}</td>
                                                 <td className="p-2 border-b border-[#E8E8E8]">{payslip.Payment_Period}</td>
                                                 <td className={`p-2 border-b border-[#E8E8E8] ${payslip.signature
-                                                        ? "text-green-600"
-                                                        : "text-orange-500"
+                                                    ? "text-green-600"
+                                                    : "text-orange-500"
                                                     }`}>
                                                     {payslip.signature ? "Approved" : "Pending"}
                                                 </td>
