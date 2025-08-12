@@ -64,15 +64,15 @@ export default function PaymentVoucherTable() {
                     <div className="flex space-x-4 gap-2">
                         <button 
                             onClick={() => handleNavigation('/')} 
-                            className="bg-[#022073] hover:bg-blue-800 text-white border-none py-3 px-6 rounded-lg text-base cursor-pointer font-medium transition-colors duration-200"
+                            className="bg-gray-500 text-white rounded-lg py-2.5 px-5 text-base font-semibold border-none cursor-pointer hover:bg-gray-600 transition-colors whitespace-nowrap flex-shrink-0"
                         >
                             Go Back
                         </button>
                         <button 
                             onClick={() => handleNavigation('/payment-voucher')} 
-                            className="bg-[#022073] hover:bg-blue-800 text-white border-none py-3 px-6 rounded-lg text-base cursor-pointer font-medium transition-colors duration-200"
+                            className="bg-[#022073] text-white rounded-lg py-2.5 px-5 text-base font-semibold border-none cursor-pointer hover:bg-blue-800 transition-colors whitespace-nowrap flex-shrink-0    "
                         >
-                            Add Payment Voucher
+                            Create Payment Voucher
                         </button>
                     </div>
                     

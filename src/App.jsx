@@ -9,6 +9,7 @@ import PayslipForm from "./pages/PayslipForm";
 import PaymentsLogbook from './pages/PaymentsLogbook';
 import PVHomePage from './pages/PVHomePage';
 import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
+import './payment-voucher-css/App.css'; // Assuming you have a CSS file for global styles
 
 function App()
 {

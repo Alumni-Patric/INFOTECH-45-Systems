@@ -165,6 +165,20 @@ function PaymentVoucher() {
 
     setValues2((prev) => {
       const updated = [...prev];
+
+      if(name === "Debit_Amount" || name === "Credit_Amount") {
+        //Allow only numbers and 2 decimal point
+        const regex = /^[0-9]*\.?[0-9]{0,2}$/;
+
+        if((value.match(/\./g) || []).length > 1) {
+          return prev; // Ignore if more than one decimal point
+        }
+
+        if (!regex.test(value)) {
+          return prev; // Ignore invalid input
+        }
+      }
+
       if (name === "Check_No") {
         const checkindex = checkNumbers.findIndex((checkNo) => checkNo === value);
         updated[index][name] = value;
@@ -641,19 +655,45 @@ function PaymentVoucher() {
               <div className="flex flex-wrap items-center gap-6 mb-2">
                 <label htmlFor={`account-${index}`} className="w-32 font-semibold text-gray-700">Account No:</label>
                 <input
-                  type="text"
+                  type="number"
                   name="Account_ID"
-                  className="flex-1 px-3 py-2 border rounded"
+                  className="flex-1 px-3 py-2 border rounded no-spinner"
                   value={account.Account_ID}
                   onChange={(e) => handleChanges2(e, index)}
                   required
                 />
                 <label htmlFor={`debit-${index}`} className="w-32 font-semibold text-gray-700">Debit Amount:</label>
                 <input
-                  type="text"
+                  type="number"
+                  min="0"
+                  step="0.01"
                   name="Debit_Amount"
-                  className="flex-1 px-3 py-2 border rounded"
+                  className="flex-1 px-3 py-2 border rounded no-spinner"
                   value={account.Debit_Amount ?? ""}
+                  onKeyDown={(e) => {
+                    const value = e.target.value || "";
+                    
+                    // Allow only numbers and decimal point
+                    if(
+                      (e.key === 'Backspace' || 
+                        e.key === 'Delete' || 
+                        e.key === 'Tab' ||
+                        e.key.startsWith('Arrow'))
+                    ){
+                      return; //Dont block these keys
+                    }
+                    
+                    //Only allow one decimal point
+                    if(e.key === '.' && value.includes('.')) {
+                      e.preventDefault();
+                      return;
+                    }
+
+                    //Block anything that is not a number or decimal point
+                    if(!/[0-9.]/.test(e.key)) {
+                      e.preventDefault(); 
+                    }
+                  }}
                   onChange={(e) => handleChanges2(e, index)}
                   placeholder="0"
                 />
@@ -670,10 +710,36 @@ function PaymentVoucher() {
                 />
                 <label htmlFor={`credit-${index}`} className="w-32 font-semibold text-gray-700">Credit Amount:</label>
                 <input
-                  type="text"
+                  type="number"
+                  min="0"
+                  step="0.01"
                   name="Credit_Amount"
-                  className="flex-1 px-3 py-2 border rounded"
+                  className="flex-1 px-3 py-2 border rounded no-spinner"
                   value={account.Credit_Amount ?? ""}
+                  onKeyDown={(e) => {
+                    const value = e.target.value || "";
+
+                    // Allow only numbers and decimal point
+                    if(
+                      (e.key === 'Backspace' || 
+                        e.key === 'Delete' || 
+                        e.key === 'Tab' ||
+                        e.key.startsWith('Arrow'))
+                    ){
+                      return; //Dont block these keys
+                    }
+                    
+                    //Only allow one decimal point
+                    if(e.key === '.' && value.includes('.')) {
+                      e.preventDefault();
+                      return;
+                    }
+
+                    //Block anything that is not a number or decimal point
+                    if(!/[0-9.]/.test(e.key)) {
+                      e.preventDefault(); 
+                    }
+                  }}
                   onChange={(e) => handleChanges2(e, index)}
                   placeholder="0"
                 />
@@ -719,7 +785,7 @@ function PaymentVoucher() {
             </select>
             <label htmlFor="daterec" className="w-32 font-semibold text-gray-700">Date Recorded:</label>
             <input type="date" name="Date_Recorded" className="flex-1 px-3 py-2 border rounded"
-              onChange={handleChanges2} required />
+              onChange={handleChanges2} value={new Date().toISOString().split("T")[0]} required disabled />
           </div>
 
           <hr className="my-6" />
@@ -727,7 +793,9 @@ function PaymentVoucher() {
           <div className="flex gap-4 justify-end">
             <button type="button" className="px-6 py-2 rounded bg-gray-300 hover:bg-gray-400 font-semibold" onClick={() => navigate('/')}>Cancel</button>
             <button type="submit" className="px-6 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 font-semibold">Save</button>
-            <button type="button" className="px-6 py-2 rounded bg-yellow-400 text-white hover:bg-yellow-500 font-semibold" onClick={handlePrint}>Print</button>
+
+            {/*Printing should be done after creation, when viewing the payment voucher itself */}
+            {/* <button type="button" className="px-6 py-2 rounded bg-yellow-400 text-white hover:bg-yellow-500 font-semibold" onClick={handlePrint}>Print</button> */}
           </div>
         </form>
       </div>

@@ -100,14 +100,14 @@ function PayslipUI() {
                         <span className="text-[#797979] text-base">Detailed records of employment earnings and deductions</span>
                     </div>
                     <div className="flex items-center gap-4">
-                        <Link to="/payslip-form">
-                            <button className="bg-[#022073] text-white rounded-full py-2.5 px-5 text-base font-semibold border-none cursor-pointer hover:bg-blue-800 transition-colors whitespace-nowrap flex-shrink-0">
-                                Go to Payslip Form
+                        <Link to="/">
+                            <button className="bg-gray-500 text-white rounded-lg py-2.5 px-5 text-base font-semibold border-none cursor-pointer hover:bg-gray-600 transition-colors whitespace-nowrap flex-shrink-0">
+                                Go Back
                             </button>
                         </Link>
-                        <Link to="/">
-                            <button className="bg-gray-500 text-white rounded-full py-2.5 px-5 text-base font-semibold border-none cursor-pointer hover:bg-gray-600 transition-colors whitespace-nowrap flex-shrink-0">
-                                Go Back
+                        <Link to="/payslip-form">
+                            <button className="bg-[#022073] text-white rounded-lg py-2.5 px-5 text-base font-semibold border-none cursor-pointer hover:bg-blue-800 transition-colors whitespace-nowrap flex-shrink-0">
+                                Create Payslip
                             </button>
                         </Link>
                     </div>
