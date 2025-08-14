@@ -27,6 +27,9 @@ function PaymentVoucher() {
   const [selectedRFP, setSelectedRFP] = useState('');
   const [selectedPayee, setSelectedPayee] = useState('');
   const [selectedTotalAmnt, setSelectedTotalAmnt] = useState('');
+  const [selectedCheckNo, setSelectedCheckNo] = useState('');
+  const [selectedCheckAmt, setSelectedCheckAmt] = useState('');
+  const [selectedAccountName, setSelectedAccountName] = useState('');
 
   const fetchRFP = async () => {
     try {
@@ -64,16 +67,36 @@ function PaymentVoucher() {
       const checkAmts = [];
       const accountNm = [];
 
+      console.log("RFP dataList:", dataList);
+      
       dataList.forEach((data) => {
+        console.log("Processing RFP data:", data);
         if (Array.isArray(data.CHARGETO_ROWS)) {
-          data.CHARGETO_ROWS.forEach((row) => {
+          console.log("CHARGETO_ROWS found:", data.CHARGETO_ROWS);
+          data.CHARGETO_ROWS.forEach((row, index) => {
+            console.log(`Row ${index}:`, row);
             if (row.checkAmount && row.checkNumber && row.accountName) {
               checkAmts.push(row.checkAmount);
               checkNos.push(row.checkNumber);
               accountNm.push(row.accountName);
+              console.log(`Added: checkAmount=${row.checkAmount}, checkNumber=${row.checkNumber}, accountName=${row.accountName}`);
+            } else {
+              console.log(`Row ${index} missing data:`, {
+                checkAmount: row.checkAmount,
+                checkNumber: row.checkNumber,
+                accountName: row.accountName
+              });
             }
           });
+        } else {
+          console.log("CHARGETO_ROWS not found or not an array for data:", data);
         }
+      });
+
+      console.log("Final arrays:", {
+        checkNos,
+        checkAmts,
+        accountNm
       });
 
       setCheckNumbers(checkNos);
@@ -93,21 +116,65 @@ function PaymentVoucher() {
     if (index !== -1) {
       setSelectedPayee(payee[index]);
       setSelectedTotalAmnt(totalAmnt[index]);
+      
+      // For the main form, we don't set check data since it should be in accounts
       setValues((prev) => ({
         ...prev,
         RFP_NO: selectedValue,
         Name: payee[index],
-        Amount: totalAmnt[index]
+        Amount: totalAmnt[index],
       }));
+
+      // Populate ALL existing accounts with check data from the selected RFP
+      setValues2((prev) => {
+        return prev.map((account, accountIndex) => {
+          const checkNo = checkNumbers[accountIndex] || '';
+          const checkAmount = checkAmounts[accountIndex] || '';
+          const accName = accountName[accountIndex] || '';
+          
+          console.log(`Populating account ${accountIndex + 1} with:`, {
+            checkNo,
+            checkAmount,
+            accName
+          });
+          
+          return {
+            ...account,
+            Check_No: checkNo,
+            Check_Amount: checkAmount,
+            Account_Name: accName
+          };
+        });
+      });
+
+      // Set the selected values for the first account (for compatibility)
+      if (checkNumbers.length > 0 && checkAmounts.length > 0) {
+        setSelectedCheckNo(checkNumbers[0] || '');
+        setSelectedCheckAmt(checkAmounts[0] || '');
+        setSelectedAccountName(accountName[0] || '');
+      }
     } else {
       setSelectedPayee('');
       setSelectedTotalAmnt('');
+      setSelectedCheckNo('');
+      setSelectedCheckAmt('');
+      setSelectedAccountName('');
       setValues((prev) => ({
         ...prev,
         RFP_NO: '',
         Name: '',
-        Amount: ''
+        Amount: '',
       }));
+      
+      // Clear ALL accounts
+      setValues2((prev) => {
+        return prev.map((account) => ({
+          ...account,
+          Check_No: '',
+          Check_Amount: '',
+          Account_Name: ''
+        }));
+      });
     }
   };
 
@@ -183,10 +250,20 @@ function PaymentVoucher() {
       }
 
       if (name === "Check_No") {
+        console.log("Check_No selected:", value);
+        console.log("Available checkNumbers:", checkNumbers);
+        console.log("Available checkAmounts:", checkAmounts);
+        console.log("Available accountName:", accountName);
+        
         const checkindex = checkNumbers.findIndex((checkNo) => checkNo === value);
+        console.log("Found checkindex:", checkindex);
+        
         updated[index][name] = value;
         updated[index].Check_Amount = checkindex !== -1 ? checkAmounts[checkindex] : "";
         updated[index].Account_Name = checkindex !== -1 ? accountName[checkindex] : "";
+        
+        console.log("Updated Check_Amount to:", updated[index].Check_Amount);
+        console.log("Updated Account_Name to:", updated[index].Account_Name);
       }  else {
         updated[index][name] = value;
       }
@@ -206,15 +283,39 @@ function PaymentVoucher() {
     const generatedPVNo = formattedPVNo();
 
     //Prepare the full document to save
+    console.log("values2 before processing:", values2);
+    
     const updatedValues = {
-      ...values,
+      // Only include top-level fields, exclude those that should be in Accounts array
+      Name: values.Name,
       PV_NO: generatedPVNo,
-      Accounts: values2.map(account => ({
-        ...account,
-        Debit_Amount: account.Debit_Amount === '' ? 0 : parseFloat(account.Debit_Amount),
-        Credit_Amount: account.Credit_Amount === '' ? 0 : parseFloat(account.Credit_Amount),
-       })),
-      };
+      Amount: values.Amount,
+      RFP_NO: values.RFP_NO,
+      Purpose: values.Purpose,
+      Paid_By: values.Paid_By,
+      Date_Paid: values.Date_Paid,
+      PV_Status: values.PV_Status,
+      Accounts: values2.map(account => {
+        console.log("Processing account:", account);
+        console.log("account.Check_Amount:", account.Check_Amount);
+        
+        const processedAccount = {
+          ...account,
+          Debit_Amount: account.Debit_Amount === '' ? 0 : parseFloat(account.Debit_Amount),
+          Credit_Amount: account.Credit_Amount === '' ? 0 : parseFloat(account.Credit_Amount),
+          Check_Amount: account.Check_Amount === '' ? 0 : parseFloat(account.Check_Amount),
+          Account_Name: account.Account_Name || selectedAccountName,
+          Check_No: account.Check_No || selectedCheckNo,
+          Date_Recorded: values.Date_Recorded, // Store in each account
+          Recorded_By: values.Recorded_By, // Store in each account
+        };
+        
+        console.log("Processed account:", processedAccount);
+        return processedAccount;
+      }),
+    };
+
+    console.log("Final updatedValues:", updatedValues);
 
     try {
       //Save everything in one document
@@ -271,265 +372,13 @@ function PaymentVoucher() {
       }
     ]);
 
+    // Clear all selected state variables including account-related fields
     setSelectedRFP("");
     setSelectedPayee("");
     setSelectedTotalAmnt("");
-  };
-
-  const generateTableForPrint = () => {
-    const printWindow = window.open("", "_blank");
-    printWindow.document.open();
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Payment Voucher</title>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              margin: 20px;
-              font-size: 12px;
-              line-height: 1.4;
-            }
-            .header {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 20px;
-              border-bottom: 2px solid #000;
-              padding-bottom: 10px;
-            }
-            .company-info {
-              display: flex;
-              align-items: center;
-            }
-            .chair-icon {
-              width: 60px;
-              height: 60px;
-              border: 2px solid #000;
-              margin-right: 15px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 8px;
-            }
-            .company-text {
-              font-weight: bold;
-              font-size: 14px;
-            }
-            .voucher-title {
-              font-size: 24px;
-              font-weight: bold;
-              text-align: center;
-            }
-            .voucher-numbers {
-              text-align: right;
-              font-weight: bold;
-            }
-            .form-section {
-              margin-bottom: 20px;
-            }
-            .form-row {
-              display: flex;
-              margin-bottom: 10px;
-              align-items: center;
-            }
-            .form-label {
-              font-weight: bold;
-              margin-right: 10px;
-              min-width: 100px;
-            }
-            .form-input {
-              border-bottom: 1px solid #000;
-              flex: 1;
-              padding: 2px 5px;
-              margin-right: 20px;
-            }
-            .signature-section {
-              display: flex;
-              justify-content: space-between;
-              margin: 20px 0;
-            }
-            .signature-box {
-              text-align: center;
-              min-width: 200px;
-            }
-            .signature-line {
-              border-bottom: 1px solid #000;
-              margin-bottom: 5px;
-              height: 40px;
-            }
-            .check-section {
-              display: flex;
-              gap: 20px;
-              margin: 20px 0;
-            }
-            .accounting-header {
-              background-color: #f0f0f0;
-              text-align: center;
-              font-weight: bold;
-              padding: 10px;
-              border: 1px solid #000;
-              margin: 20px 0 10px 0;
-            }
-            .accounting-table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-bottom: 20px;
-            }
-            .accounting-table th,
-            .accounting-table td {
-              border: 1px solid #000;
-              padding: 8px;
-              text-align: center;
-            }
-            .accounting-table th {
-              background-color: #f0f0f0;
-              font-weight: bold;
-            }
-            .bottom-signature {
-              display: flex;
-              justify-content: space-between;
-              margin-top: 30px;
-            }
-            .bottom-signature-box {
-              text-align: center;
-              min-width: 200px;
-            }
-            .bottom-signature-line {
-              border-bottom: 1px solid #000;
-              margin-bottom: 5px;
-              height: 40px;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div class="company-info">
-              <div class="chair-icon">
-                🪑
-              </div>
-              <div class="company-text">
-                Galanter & Jones SLA. Inc.<br>
-                <span style="font-size: 10px; font-style: italic;">Heated Outdoor Furniture</span>
-              </div>
-            </div>
-            <div class="voucher-title">Payment Voucher</div>
-            <div class="voucher-numbers">
-              PV No: <span style="border-bottom: 1px solid #000; padding: 2px 10px;">${values.PV_NO || '_____________'}</span><br><br>
-              RFP No: <span style="border-bottom: 1px solid #000; padding: 2px 10px;">${values.RFP_NO || '_____________'}</span>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <div class="form-row">
-              <span class="form-label">Payee:</span>
-              <span class="form-input">${values.Name || '_'.repeat(50)}</span>
-            </div>
-            
-            <div class="form-row" style="margin-top: 20px;">
-              <span class="form-label">Total Amount:</span>
-              <span class="form-input">₱${values.Amount ? Number(values.Amount).toLocaleString() : '_'.repeat(20)}</span>
-            </div>
-            
-            <div class="form-row" style="margin-top: 20px;">
-              <span class="form-label">Purpose:</span>
-              <span class="form-input">${values.Purpose || '_'.repeat(60)}</span>
-            </div>
-          </div>
-
-          <div class="signature-section">
-            <div class="signature-box">
-              <div style="font-weight: bold; margin-bottom: 10px;">Paid by:</div>
-              <div style="font-weight: bold; margin-bottom: 5px;">Treasurer</div>
-              <div class="signature-line"></div>
-              <div style="font-size: 10px; font-style: italic;">(Signature over printed name)</div>
-            </div>
-            <div class="signature-box">
-              <div style="font-weight: bold; margin-bottom: 40px;">Date Paid:</div>
-              <div style="border-bottom: 1px solid #000; padding: 2px 10px; margin-bottom: 20px;">
-                ${values.Date_Paid || '_____________'}
-              </div>
-            </div>
-          </div>
-
-          <div class="check-section">
-            <div>
-              <span style="font-weight: bold;">Check #:</span>
-              <span style="border-bottom: 1px solid #000; padding: 2px 15px; margin-left: 10px;">
-                ${values2[0]?.Check_No || '_'.repeat(15)}
-              </span>
-            </div>
-            <div>
-              <span style="font-weight: bold;">Check Amount:</span>
-              <span style="border-bottom: 1px solid #000; padding: 2px 15px; margin-left: 10px;">
-                ₱${values2[0]?.Check_Amount ? Number(values2[0].Check_Amount).toLocaleString() : '_'.repeat(15)}
-              </span>
-            </div>
-          </div>
-
-          <div class="accounting-header">
-            TO BE FILLED UP BY BOOKKEEPER/ACCOUNTING PERSONNEL
-          </div>
-
-          <table class="accounting-table">
-            <thead>
-              <tr>
-                <th>Account No</th>
-                <th>Account Name:</th>
-                <th>Debit - Amount</th>
-                <th>Credit - Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${values2.map(account => `
-                <tr>
-                  <td>${account.Account_ID || '_'.repeat(8)}</td>
-                  <td>${account.Account_Name || '_'.repeat(20)}</td>
-                  <td>₱${account.Debit_Amount ? Number(account.Debit_Amount).toLocaleString() : '_'.repeat(10)}</td>
-                  <td>₱${account.Credit_Amount ? Number(account.Credit_Amount).toLocaleString() : '_'.repeat(10)}</td>
-                </tr>
-              `).join("")}
-              ${Array(3 - values2.length).fill().map(() => `
-                <tr>
-                  <td>${'_'.repeat(8)}</td>
-                  <td>${'_'.repeat(20)}</td>
-                  <td>${'_'.repeat(10)}</td>
-                  <td>${'_'.repeat(10)}</td>
-                </tr>
-              `).join("")}
-              <tr style="border-top: 2px solid #000;">
-                <td colspan="2" style="text-align: right; font-weight: bold;">Total:</td>
-                <td style="border-bottom: 2px solid #000;">${'_'.repeat(10)}</td>
-                <td style="border-bottom: 2px solid #000;">${'_'.repeat(10)}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="bottom-signature">
-            <div class="bottom-signature-box">
-              <div style="font-weight: bold; margin-bottom: 10px;">Recorded by:</div>
-              <div style="font-weight: bold; margin-bottom: 5px;">Bookkeeper/Accounting</div>
-              <div class="bottom-signature-line"></div>
-              <div style="font-size: 10px; font-style: italic;">(Signature over printed name)</div>
-            </div>
-            <div class="bottom-signature-box">
-              <div style="font-weight: bold; margin-bottom: 40px;">Date Recorded:</div>
-              <div style="border-bottom: 1px solid #000; padding: 2px 10px; margin-bottom: 20px;">
-                ${values2[0]?.Date_Recorded || '_____________'}
-              </div>
-            </div>
-          </div>
-
-          <script>
-            window.onload = function() {
-              window.print();
-              window.close();
-            };
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+    setSelectedCheckNo("");
+    setSelectedCheckAmt("");
+    setSelectedAccountName("");
   };
 
   const [count, setCount] = useState(2);
@@ -687,7 +536,7 @@ function PaymentVoucher() {
                   type="text"
                   name="Account_Name"
                   className="flex-1 px-3 py-2 border rounded"
-                  value={account.Account_Name}
+                  value={index === 0 ? (selectedAccountName || account.Account_Name) : account.Account_Name}
                   onChange={(e) => handleChanges2(e, index)}
                   required
                 />
@@ -733,7 +582,7 @@ function PaymentVoucher() {
                   name="Check_No"
                   id={`checkno-${index}`}
                   className="flex-1 px-3 py-2 border rounded"
-                  value={account.Check_No}
+                  value={index === 0 ? (selectedCheckNo || account.Check_No) : account.Check_No}
                   onChange={(e) => handleChanges2(e, index)}
                 >
                   <option value="">Select Check</option>
@@ -746,7 +595,7 @@ function PaymentVoucher() {
                   type="text"
                   name="Check_Amount"
                   className="flex-1 px-3 py-2 border rounded bg-gray-100"
-                  value={account.Check_Amount || 0}
+                  value={index === 0 ? (selectedCheckAmt || account.Check_Amount) : account.Check_Amount}
                   onChange={(e) => handleChanges2(e, index)}
                   disabled
                 />
@@ -761,14 +610,14 @@ function PaymentVoucher() {
 
           <div className="flex flex-wrap items-center gap-6 mb-4">
             <label htmlFor="recorded" className="w-32 font-semibold text-gray-700">Recorded By:</label>
-            <select name="Recorded_By" id="recorded" className="flex-1 px-3 py-2 border rounded" value={values2[0].Recorded_By} onChange={handleChanges2}>
+            <select name="Recorded_By" id="recorded" className="flex-1 px-3 py-2 border rounded" value={values.Recorded_By} onChange={handleChanges}>
               <option value="Barry Simmons">Barry Simmons</option>
               <option value="Larry Smith">Larry Smith</option>
               <option value="Lucy Parrot">Lucy Parrot</option>
             </select>
             <label htmlFor="daterec" className="w-32 font-semibold text-gray-700">Date Recorded:</label>
             <input type="date" name="Date_Recorded" className="flex-1 px-3 py-2 border rounded"
-              value={values2[0]?.Date_Recorded} required readOnly />
+              value={values.Date_Recorded} required readOnly />
           </div>
 
           <hr className="my-6" />
