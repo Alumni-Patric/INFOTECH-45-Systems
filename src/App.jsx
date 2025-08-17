@@ -8,13 +8,16 @@ import Payslip from "./pages/Payslip";
 import PayslipForm from "./pages/PayslipForm";
 import PaymentsLogbook from './pages/PaymentsLogbook';
 import PVHomePage from './pages/PVHomePage';
-import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
-import './payment-voucher-css/App.css'; // Assuming you have a CSS file for global styles
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "./components/ui/sonner.jsx";
+// import Layout from './components/Layout.jsx'; // Temporarily disabled
+import './App.css'; // Assuming you have a CSS file for global styles
 
-function App()
-{
-  return(
+function App() {
+  return (
     <Router>
+      <Toaster richColors position="top-center" />
+      {/* Layout temporarily disabled - removed sidebar and header */}
       <Routes>
         <Route path="/" element={<PVHomePage />} />
         <Route path="/payment-voucher" element={<PaymentVoucher />} />

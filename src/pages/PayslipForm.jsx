@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import Navbar from "../NewNavbar&Footer/navbar.jsx";
 import { collection, setDoc, getDocs, doc } from "firebase/firestore";
 import { firestore } from "../firebase.js";
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { Button } from "../components/ui/button.jsx";
+import { Input } from "../components/ui/input.jsx";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.jsx";
+import { ArrowLeft, Plus, Minus, Calculator, User, Calendar, DollarSign, FileText } from "lucide-react";
 
 const PayslipForm = () => {
     const [employeeName, setEmployeeName] = useState("");
@@ -22,14 +26,14 @@ const PayslipForm = () => {
     const statutoryDeductionsOptions = ["SSS", "PhilHealth", "Pag-IBIG"]; //Add more statutory deductions as needed
     const otherDeductionsOptions = ["Late", "Absence", "Salary Advance"]; //Add more other deductions as needed
 
-    {/* Function to format the date range for the payslip */}
+    {/* Function to format the date range for the payslip */ }
     const getFormattedDate = (startDate, endDate) => {
-        if(!startDate || !endDate) return "";
+        if (!startDate || !endDate) return "";
 
         const start = new Date(startDate);
         const end = new Date(endDate);
 
-        if(end < start) {
+        if (end < start) {
             toast.error("End date cannot be earlier than start date.");
             return;
         }
@@ -39,9 +43,9 @@ const PayslipForm = () => {
 
         const monthName = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(start);
 
-        if(sameMonth && sameYear) {
+        if (sameMonth && sameYear) {
             return `${monthName} ${start.getDate()}-${end.getDate()}, ${start.getFullYear()}`;
-        }else{
+        } else {
             const startFormatted = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(start);
             const endFormatted = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(end);
             return `${startFormatted} - ${endFormatted}`;
@@ -49,16 +53,16 @@ const PayslipForm = () => {
     }
 
     const cleanedOtherDeductions = otherDeductions.map((deduction) => {
-    if (deduction.name === "Custom") {
+        if (deduction.name === "Custom") {
+            return {
+                name: deduction.customName?.trim() || "Unnamed Deduction", // fallback just in case
+                amount: deduction.amount,
+            };
+        }
         return {
-        name: deduction.customName?.trim() || "Unnamed Deduction", // fallback just in case
-        amount: deduction.amount,
+            name: deduction.name,
+            amount: deduction.amount,
         };
-    }
-    return {
-        name: deduction.name,
-        amount: deduction.amount,
-    };
     });
 
 
@@ -72,10 +76,10 @@ const PayslipForm = () => {
         }
     };
 
-    {/* Function to handle end date change to not surpass the start date*/}
+    {/* Function to handle end date change to not surpass the start date*/ }
     const handleEndDateChange = (e) => {
         const selectedDate = e.target.value;
-        if(new Date(selectedDate) < new Date(startDate)) {
+        if (new Date(selectedDate) < new Date(startDate)) {
             toast.error("End date cannot be earlier than start date.");
             return;
         }
@@ -133,7 +137,7 @@ const PayslipForm = () => {
                 Employee_Id: employeeId || "",
                 Designation: designation || "",
                 Basic_Pay: parseFloat(basicPay) || 0,
-                Statutory_Deductions:statutoryDeductions,
+                Statutory_Deductions: statutoryDeductions,
                 Other_Deductions: cleanedOtherDeductions,
                 Honorarium: parseFloat(honorarium) || 0,
                 Allowance: parseFloat(allowance) || 0,
@@ -145,7 +149,7 @@ const PayslipForm = () => {
                 Timestamp: new Date(),
             });
 
-            
+
             // Clear all form fields
             setEmployeeName("");
             setEmployeeId("");
@@ -157,19 +161,19 @@ const PayslipForm = () => {
             setAllowance(0);
             setStartDate(() => new Date().toISOString().split('T')[0]); // Reset to today
             setEndDate("");
-            
+
             // Scroll to top after a short delay to ensure DOM has updated
             setTimeout(() => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }, 100);
-            
+
             toast.dismiss(loadingToast);
             toast.success("Payslip saved successfully!");
             navigate('/payslipUI'); // Navigate to Payslip UI after saving
         } catch (err) {
             toast.dismiss(loadingToast);
             toast.error("Error saving payslip: " + err.message);
-        }finally{
+        } finally {
             setIsSubmitting(false); // Unlocks the button
         }
     };
@@ -177,324 +181,375 @@ const PayslipForm = () => {
     return (
         <>
             <Navbar />
-            <Toaster
-                position="top-right"
-                toastOptions={{
-                    duration: 4000,
-                    style: {
-                        background: '#363636',
-                        color: '#fff',
-                    },
-                    success: {
-                        duration: 3000,
-                        iconTheme: {
-                            primary: '#4ade80',
-                            secondary: '#fff',
-                        },
-                    },
-                    error: {
-                        duration: 4000,
-                        iconTheme: {
-                            primary: '#ef4444',
-                            secondary: '#fff',
-                        },
-                    },
-                }}
-            />
-            <div className="p-10">
-
-                <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mt-10 p-5 border border-gray-300 rounded-lg bg-gray-50">
-                    <h1 className="text-center mb-5 text-2xl font-bold">Payslip Form</h1>
-                    {/* Employee Name and Date of Joining */}
-                    <div className="flex gap-3 mb-3">
-                        <div className="flex-1">
-                            <label className="font-bold block mb-1">Employee Name:</label>
-                            <input
-                                type="text"
-                                value={employeeName || ""}
-                                placeholder='Enter Employee Name'
-                                onChange={(e) => setEmployeeName(e.target.value.replace(/[^A-Za-z\s]/g, ""))}
-                                className="w-full p-2 mb-4 rounded border border-gray-300"
-                                required
-                            />
+            <div className="min-h-screen bg-background">
+                <div className="container mx-auto px-4 py-6 max-w-4xl">
+                    {/* Header Section */}
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
+                        <div className="space-y-1">
+                            <h1 className="text-3xl font-bold tracking-tight text-foreground">Create Payslip</h1>
+                            <p className="text-muted-foreground">Fill in the employee details and compensation information</p>
                         </div>
-                        <div className="flex-1">
-                            <label className="font-bold block mb-1">Employee ID:</label>
-                            <input
-                                type="text"
-                                value={employeeId || ""}
-                                placeholder='Enter Employee ID'
-                                onChange={(e) => setEmployeeId(e.target.value)}
-                                className="w-full p-2 mb-4 rounded border border-gray-300"
-                                required
-                            />
-                        </div>
-                        
-                    </div>
-
-                    {/* Pay Period (Start and End)*/}
-                    <div className="flex gap-3 mb-3">
-                        <div className="flex-1">
-                            <label className="font-bold block mb-1">Start Date:</label>
-                            <input
-                                type="date"
-                                value={startDate || ""}
-                                onChange={handleStartDateChange}
-                                className="w-full p-2 mb-4 rounded border border-gray-300"
-                                required
-                                disabled
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <label className="font-bold block mb-1">End Date:</label>
-                            <input
-                                type="date"
-                                value={endDate || ""}
-                                onChange={handleEndDateChange}
-                                min={startDate}
-                                className="w-full p-2 mb-4 rounded border border-gray-300"
-                                disabled={!startDate} // Disable if start date is not set
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3 mb-3">
-                        <div className="flex-1">
-                            {/* Designation */}
-                            <label className="font-bold block mb-1">Designation:</label>
-                            <input
-                                type="text"
-                                value={designation || ""}
-                                placeholder='Enter Designation'
-                                onChange={(e) => setDesignation(e.target.value.replace(/[^A-Za-z\s]/g, ""))}
-                                className="w-full p-2 mb-4 rounded border border-gray-300"
-                                required
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <label className="font-bold block mb-1">Basic Pay:</label>
-                            <input
-                                type="text"
-                                value={basicPay === 0 ? "" : basicPay}
-                                placeholder='Enter Base Salary'
-                                onChange={(e) => setBasicPay(e.target.value.replace(/[^0-9.]/g, ""))}
-                                {...inputModeProps}
-                                className="w-full p-2 mb-4 rounded border border-gray-300"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    
-
-                    {/* Statutory Deductions */}
-                    <label className="font-bold block mb-1">Statutory Deductions:</label>
-                    {statutoryDeductions.map((deduction, index) => (
-                        <div key={index} className="flex gap-3">
-                            <select
-                                value={deduction.name}
-                                onChange={(e) => {
-                                    const updated = statutoryDeductions.map((item, i) =>
-                                        i === index ? { ...item, name: e.target.value } : item
-                                    );
-                                    setStatutoryDeductions(updated);
-                                }}
-                                className="flex-2 w-full p-2 mb-4 rounded border border-gray-300"
-                            >
-                                <option value="" disabled>Select Deduction</option>
-                                {statutoryDeductionsOptions.map((option, idx) => (
-                                    <option 
-                                        key={idx} 
-                                        value={option}
-                                        disabled={statutoryDeductions.some((d) => d.name === option && d.name !== deduction.name)}
-                                    >
-                                        {option}
-                                    </option>
-                                ))}
-                            </select>
-
-                            {/*Amount input for statutory deduction*/}
-                            <input
-                                type="text"
-                                placeholder="Amount"
-                                value={deduction.amount === 0 ? "" : deduction.amount}
-                                onChange={(e) => {
-                                    const updated = statutoryDeductions.map((item, i) =>
-                                        i === index ? { ...item, amount: parseFloat(e.target.value.replace(/[^0-9.]/g, "")) || 0 } : item
-                                    );
-                                    setStatutoryDeductions(updated);
-                                }}
-                                {...inputModeProps}
-                                className="flex-1 w-full p-2 mb-4 rounded border border-gray-300"
-                            />
-
-                            {/*Remove button for statutory deduction*/}
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const updated = statutoryDeductions.filter((_, i) => i !== index);
-                                    setStatutoryDeductions(updated);
-                                }}
-                                className="px-3 py-2 mb-4 border-none rounded cursor-pointer bg-red-500 text-white hover:bg-red-600 text-sm"
-                                title="Remove deduction"
-                            >
-                                ×
+                        <Button variant="outline" asChild>
+                            <button onClick={() => navigate("/payslipUI")}>
+                                <ArrowLeft className="w-4 h-4 mr-2" />
+                                Back to Payslip List
                             </button>
-                        </div>
-                    ))}
-                    <button
-                        type="button"
-                        onClick={() => setStatutoryDeductions([...statutoryDeductions, { name: "", amount: 0 }])}
-                        className="px-5 py-2 mb-3 border-none rounded cursor-pointer bg-[#022073] text-white hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={statutoryDeductions.length >= statutoryDeductionsOptions.length}
-                    >
-                        Add Deduction
-                    </button>
+                        </Button>
+                    </div>
 
-                    {/* Other Deductions */}
-                    <label className="font-bold block mb-1">Other Deductions:</label>
-                    {otherDeductions.map((deduction, index) => (
-                        <div key={index} className="flex gap-3">
-                            {deduction.name !== "Custom" ? (
-                                <select
-                                    value={deduction.name}
-                                    onChange={(e) => {
-                                        const updated = otherDeductions.map((item, i) =>
-                                            i === index ? { ...item, name: e.target.value } : item
-                                        );
-                                        setOtherDeductions(updated);
-                                    }}
-                                    className="flex-2 w-full p-2 mb-4 rounded border border-gray-300"
-                                >
-                                    <option value="" disabled>Select Deduction</option>
-                                    {otherDeductionsOptions.map((option, idx) => (
-                                        <option 
-                                            key={idx} 
-                                            value={option}
-                                            disabled={otherDeductions.some((d) => d.name === option && d.name !== deduction.name)}
+                    <form onSubmit={handleSubmit}>
+                        {/* Employee Information Card */}
+                        <Card className="mb-6">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <User className="w-5 h-5" />
+                                    Employee Information
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground">Employee Name *</label>
+                                        <Input
+                                            type="text"
+                                            value={employeeName || ""}
+                                            placeholder="Enter Employee Name"
+                                            onChange={(e) => setEmployeeName(e.target.value.replace(/[^A-Za-z\s]/g, ""))}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground">Employee ID *</label>
+                                        <Input
+                                            type="text"
+                                            value={employeeId || ""}
+                                            placeholder="Enter Employee ID"
+                                            onChange={(e) => setEmployeeId(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground">Designation *</label>
+                                        <Input
+                                            type="text"
+                                            value={designation || ""}
+                                            placeholder="Enter Designation"
+                                            onChange={(e) => setDesignation(e.target.value.replace(/[^A-Za-z\s]/g, ""))}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground">Basic Pay *</label>
+                                        <Input
+                                            type="text"
+                                            value={basicPay === 0 ? "" : basicPay}
+                                            placeholder="Enter Base Salary"
+                                            onChange={(e) => setBasicPay(e.target.value.replace(/[^0-9.]/g, ""))}
+                                            {...inputModeProps}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Payment Period Card */}
+                        <Card className="mb-6">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Calendar className="w-5 h-5" />
+                                    Payment Period
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground">Start Date *</label>
+                                        <Input
+                                            type="date"
+                                            value={startDate || ""}
+                                            onChange={handleStartDateChange}
+                                            required
+                                            disabled
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground">End Date *</label>
+                                        <Input
+                                            type="date"
+                                            value={endDate || ""}
+                                            onChange={handleEndDateChange}
+                                            min={startDate}
+                                            disabled={!startDate}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Statutory Deductions Card */}
+                        <Card className="mb-6">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <FileText className="w-5 h-5" />
+                                    Statutory Deductions
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {statutoryDeductions.map((deduction, index) => (
+                                    <div key={index} className="flex gap-3 items-end">
+                                        <div className="flex-2 space-y-2">
+                                            <label className="text-sm font-medium text-foreground">Deduction Type</label>
+                                            <select
+                                                value={deduction.name}
+                                                onChange={(e) => {
+                                                    const updated = statutoryDeductions.map((item, i) =>
+                                                        i === index ? { ...item, name: e.target.value } : item
+                                                    );
+                                                    setStatutoryDeductions(updated);
+                                                }}
+                                                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                            >
+                                                <option value="" disabled>Select Deduction</option>
+                                                {statutoryDeductionsOptions.map((option, idx) => (
+                                                    <option
+                                                        key={idx}
+                                                        value={option}
+                                                        disabled={statutoryDeductions.some((d) => d.name === option && d.name !== deduction.name)}
+                                                    >
+                                                        {option}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="flex-1 space-y-2">
+                                            <label className="text-sm font-medium text-foreground">Amount</label>
+                                            <Input
+                                                type="text"
+                                                placeholder="0.00"
+                                                value={deduction.amount === 0 ? "" : deduction.amount}
+                                                onChange={(e) => {
+                                                    const updated = statutoryDeductions.map((item, i) =>
+                                                        i === index ? { ...item, amount: parseFloat(e.target.value.replace(/[^0-9.]/g, "")) || 0 } : item
+                                                    );
+                                                    setStatutoryDeductions(updated);
+                                                }}
+                                                {...inputModeProps}
+                                            />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            onClick={() => {
+                                                const updated = statutoryDeductions.filter((_, i) => i !== index);
+                                                setStatutoryDeductions(updated);
+                                            }}
+                                            title="Remove deduction"
                                         >
-                                            {option}
-                                        </option>
-                                    ))}
-                                    <option value="Custom">Other (Specify)</option>
-                                </select>
-                            ):(
-                                <input
-                                    type="text"
-                                    placeholder='Specify Custom Deduction'
-                                    value={deduction.customName || ""}
-                                    onChange={(e) => {
-                                        const updated = otherDeductions.map((item, i) =>
-                                            i === index ? { ...item, customName: e.target.value } : item
-                                        );
-                                        setOtherDeductions(updated);
-                                    }}
-                                    onBlur={() => {
-                                        if(!deduction.customName) {
-                                            const updated = otherDeductions.map((item, i) =>
-                                                i === index ? { ...item, name: "Custom" } : item
-                                            );
-                                            setOtherDeductions(updated);
-                                        }
-                                    }}
-                                    className='flex-2 w-full p-2 mb-4 rounded border border-gray-300'
-                                />
-                            )}
-            
-                            <input
-                                type="text"
-                                placeholder="Amount"
-                                value={deduction.amount === 0 ? "" : deduction.amount}
-                                onChange={(e) => {
-                                    const updated = otherDeductions.map((item, i) =>
-                                        i === index ? { ...item, amount: parseFloat(e.target.value.replace(/[^0-9.]/g, "")) || 0 } : item
-                                    );
-                                    setOtherDeductions(updated);
-                                }}
-                                {...inputModeProps}
-                                className="flex-1 w-full p-2 mb-4 rounded border border-gray-300"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const updated = otherDeductions.filter((_, i) => i !== index);
-                                    setOtherDeductions(updated);
-                                }}
-                                className="px-3 py-2 mb-4 border-none rounded cursor-pointer bg-red-500 text-white hover:bg-red-600 text-sm"
-                                title="Remove deduction"
+                                            <Minus className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setStatutoryDeductions([...statutoryDeductions, { name: "", amount: 0 }])}
+                                    disabled={statutoryDeductions.length >= statutoryDeductionsOptions.length}
+                                >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Add Statutory Deduction
+                                </Button>
+                            </CardContent>
+                        </Card>
+
+                        {/* Other Deductions Card */}
+                        <Card className="mb-6">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <FileText className="w-5 h-5" />
+                                    Other Deductions
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {otherDeductions.map((deduction, index) => (
+                                    <div key={index} className="flex gap-3 items-end">
+                                        <div className="flex-2 space-y-2">
+                                            <label className="text-sm font-medium text-foreground">Deduction Type</label>
+                                            {deduction.name !== "Custom" ? (
+                                                <select
+                                                    value={deduction.name}
+                                                    onChange={(e) => {
+                                                        const updated = otherDeductions.map((item, i) =>
+                                                            i === index ? { ...item, name: e.target.value } : item
+                                                        );
+                                                        setOtherDeductions(updated);
+                                                    }}
+                                                    className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                                >
+                                                    <option value="" disabled>Select Deduction</option>
+                                                    {otherDeductionsOptions.map((option, idx) => (
+                                                        <option
+                                                            key={idx}
+                                                            value={option}
+                                                            disabled={otherDeductions.some((d) => d.name === option && d.name !== deduction.name)}
+                                                        >
+                                                            {option}
+                                                        </option>
+                                                    ))}
+                                                    <option value="Custom">Other (Specify)</option>
+                                                </select>
+                                            ) : (
+                                                <Input
+                                                    type="text"
+                                                    placeholder="Specify Custom Deduction"
+                                                    value={deduction.customName || ""}
+                                                    onChange={(e) => {
+                                                        const updated = otherDeductions.map((item, i) =>
+                                                            i === index ? { ...item, customName: e.target.value } : item
+                                                        );
+                                                        setOtherDeductions(updated);
+                                                    }}
+                                                    onBlur={() => {
+                                                        if (!deduction.customName) {
+                                                            const updated = otherDeductions.map((item, i) =>
+                                                                i === index ? { ...item, name: "Custom" } : item
+                                                            );
+                                                            setOtherDeductions(updated);
+                                                        }
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
+                                        <div className="flex-1 space-y-2">
+                                            <label className="text-sm font-medium text-foreground">Amount</label>
+                                            <Input
+                                                type="text"
+                                                placeholder="0.00"
+                                                value={deduction.amount === 0 ? "" : deduction.amount}
+                                                onChange={(e) => {
+                                                    const updated = otherDeductions.map((item, i) =>
+                                                        i === index ? { ...item, amount: parseFloat(e.target.value.replace(/[^0-9.]/g, "")) || 0 } : item
+                                                    );
+                                                    setOtherDeductions(updated);
+                                                }}
+                                                {...inputModeProps}
+                                            />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            onClick={() => {
+                                                const updated = otherDeductions.filter((_, i) => i !== index);
+                                                setOtherDeductions(updated);
+                                            }}
+                                            title="Remove deduction"
+                                        >
+                                            <Minus className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setOtherDeductions([...otherDeductions, { name: "", amount: 0 }])}
+                                >
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Add Other Deduction
+                                </Button>
+                            </CardContent>
+                        </Card>
+
+                        {/* Additional Compensation Card */}
+                        <Card className="mb-6">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <DollarSign className="w-5 h-5" />
+                                    Additional Compensation
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground">Honorarium</label>
+                                        <Input
+                                            type="text"
+                                            value={honorarium === 0 ? "" : honorarium}
+                                            placeholder="0.00"
+                                            onChange={(e) => setHonorarium(e.target.value.replace(/[^0-9.]/g, ""))}
+                                            {...inputModeProps}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground">Allowance</label>
+                                        <Input
+                                            type="text"
+                                            value={allowance === 0 ? "" : allowance}
+                                            placeholder="0.00"
+                                            onChange={(e) => setAllowance(e.target.value.replace(/[^0-9.]/g, ""))}
+                                            {...inputModeProps}
+                                        />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Summary Card */}
+                        <Card className="mb-6">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Calculator className="w-5 h-5" />
+                                    Pay Summary
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground">Total Pay After Deductions</label>
+                                        <Input
+                                            type="number"
+                                            readOnly
+                                            value={isNaN(totalPay) ? "" : totalPay}
+                                            className="bg-muted cursor-not-allowed"
+                                            disabled
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-foreground">Net Pay</label>
+                                        <Input
+                                            type="number"
+                                            readOnly
+                                            value={isNaN(netPay) ? "" : netPay}
+                                            className="bg-muted cursor-not-allowed"
+                                            disabled
+                                        />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <Button
+                                type="submit"
+                                disabled={!isFormValid || isSubmitting}
+                                className="flex-1 sm:flex-none"
                             >
-                                ×
-                            </button>
+                                {isSubmitting ? "Saving..." : "Save Payslip"}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => navigate("/payslipUI")}
+                                className="flex-1 sm:flex-none"
+                            >
+                                Cancel
+                            </Button>
                         </div>
-                    ))}
-                    <button
-                        type="button"
-                        onClick={() => setOtherDeductions([...otherDeductions, { name: "", amount: 0 }])}
-                        className="px-5 py-2 mb-3 border-none rounded cursor-pointer bg-[#022073] text-white hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                    
-                    >
-                        Add Other Deduction
-                    </button>
-
-                    {/* Calculated Total Pay */}
-                    <label className="font-bold block mb-1">Total Pay After Deductions:</label>
-                    <input
-                        type="number"
-                        readOnly
-                        value={isNaN(totalPay) ? "" : totalPay}
-                        className="w-full p-2 mb-4 rounded border border-gray-300 bg-gray-100 cursor-not-allowed"
-                        disabled
-                    />
-
-                    {/* Honorarium */}
-                    <label className="font-bold block mb-1">Honorarium:</label>
-                    <input
-                        type="text"
-                        value={honorarium === 0 ? "" : honorarium}
-                        placeholder="0"
-                        onChange={(e) => setHonorarium(e.target.value.replace(/[^0-9.]/g, ""))}
-                        {...inputModeProps}
-                        className="w-full p-2 mb-4 rounded border border-gray-300"
-                    />
-
-                    {/* Allowance */}
-                    <label className="font-bold block mb-1">Allowance:</label>
-                    <input
-                        type="text"
-                        value={allowance === 0 ? "" : allowance}
-                        placeholder='0'
-                        onChange={(e) => setAllowance(e.target.value.replace(/[^0-9.]/g, ""))}
-                        {...inputModeProps}
-                        className="w-full p-2 mb-4 rounded border border-gray-300"
-                    />
-
-                    {/* Net Pay */}
-                    <label className="font-bold block mb-1">Net Pay:</label>
-                    <input
-                        type="number"
-                        readOnly
-                        value={isNaN(netPay) ? "" : netPay}
-                        className="w-full p-2 mb-4 rounded border border-gray-300 bg-gray-100 cursor-not-allowed"
-                        disabled
-                    />
-                    {/* Buttons */}
-                    <div className="mt-5">
-                        <button 
-                            type="submit" 
-                            disabled={!isFormValid || isSubmitting} 
-                            className="px-5 py-2 mr-3 border-none rounded cursor-pointer bg-[#022073] text-white hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed">
-                            {isSubmitting ? "Saving..." : "Save Payslip"}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => navigate("/payslipUI")}
-                            className="px-5 py-2 mr-3 border-none rounded cursor-pointer bg-gray-500 text-white hover:bg-gray-600"
-                        >
-                            Return to Payslip Home
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </>
     );
