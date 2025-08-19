@@ -47,8 +47,8 @@ export default function PaymentVoucherTable() {
 
             // Sort by date from latest to oldest (descending order)
             const sortedData = dataList.sort((a, b) => {
-                const dateA = new Date(a.Date_Paid || '1900-01-01');
-                const dateB = new Date(b.Date_Paid || '1900-01-01');
+                const dateA = new Date(a.Date_Recorded || '1900-01-01');
+                const dateB = new Date(b.Date_Recorded || '1900-01-01');
                 return dateB - dateA; // Latest to oldest
             });
 
@@ -165,10 +165,33 @@ export default function PaymentVoucherTable() {
                                         Clear search
                                     </Button>
                                 ) : (
+<<<<<<< Updated upstream
                                     <Button onClick={() => handleNavigation('/payment-voucher')} className="bg-[#263145] hover:bg-[#1a2332] text-white">
                                         <Plus className="w-4 h-4 mr-2" />
                                         Create Payment Voucher
                                     </Button>
+=======
+                                    paymentVouchers.map((voucher, idx) => (
+                                        <tr key={voucher.id || idx} className="hover:bg-gray-50 transition-colors duration-150">
+                                            <td className="p-4 border-b border-gray-200">{voucher.PV_NO || '-'}</td>
+                                            <td className="p-4 border-b border-gray-200">{voucher.RFP_NO || '-'}</td>
+                                            <td className="p-4 border-b border-gray-200">{voucher.Name || '-'}</td>
+                                            <td className="p-4 border-b border-gray-200">{voucher.Purpose || '-'}</td>
+                                            <td className="p-4 border-b border-gray-200">
+                                                {voucher.Amount !== undefined ? `₱${Number(voucher.Amount).toLocaleString()}` : '-'}
+                                            </td>
+                                            <td className="p-4 border-b border-gray-200">{voucher.Date_Recorded ? new Date(voucher.Date_Recorded + 'T00:00:00').toLocaleDateString() : '-'}</td>
+                                            <td className="p-4 border-b border-gray-200">
+                                                <button
+                                                    onClick={() => handleEdit(voucher.PV_NO || voucher.id)}
+                                                    className="text-indigo-500 hover:text-indigo-700 bg-transparent border-none cursor-pointer text-sm font-medium transition-colors duration-200"
+                                                >
+                                                    View Details
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+>>>>>>> Stashed changes
                                 )}
                             </div>
                         ) : (

@@ -113,12 +113,141 @@ function PaymentVoucher() {
     }
   };
 
+  // const handleSelectedRFP = (e) => {
+  //   const selectedValue = e.target.value;
+  //   setSelectedRFP(selectedValue);
+
+  //   const index = attributes.findIndex((rfp) => rfp === selectedValue);
+
+  //   if (index !== -1) {
+  //     setSelectedPayee(payee[index]);
+  //     setSelectedTotalAmnt(totalAmnt[index]);
+      
+  //     // For the main form, we don't set check data since it should be in accounts
+  //     setValues((prev) => ({
+  //       ...prev,
+  //       RFP_NO: selectedValue,
+  //       Name: payee[index],
+  //       Amount: totalAmnt[index],
+  //     }));
+
+  //     // Find the selected RFP's CHARGETO_ROWS to determine how many accounts to create
+  //     const fetchSelectedRFPAccounts = async () => {
+  //       try {
+  //         const querySnapshot = await getDocs(collection(firestore, "Request for Payment"));
+  //         const dataList = querySnapshot.docs.map((doc) => ({
+  //           id: doc.id,
+  //           ...doc.data()
+  //         }));
+
+  //         const selectedRFPData = dataList.find((data) => data.RFP_NO === selectedValue);
+
+  //         if (selectedRFPData && selectedRFPData.data().CHARGETO_ROWS) {
+  //           const chargeToRows = selectedRFPData.data().CHARGETO_ROWS;
+  //           console.log("Selected RFP CHARGETO_ROWS:", chargeToRows);
+            
+  //           // Create accounts array based on the number of CHARGETO_ROWS
+  //           const newAccounts = chargeToRows.map((row, accountIndex) => ({
+  //             Account_ID: "",
+  //             Account_Name: row.accountName || '',
+  //             Debit_Amount: "",
+  //             Credit_Amount: "",
+  //             Check_No: row.checkNumber || '',
+  //             Check_Amount: row.checkAmount || '',
+  //           }));
+            
+  //           console.log("Creating accounts:", newAccounts);
+  //           setValues2(newAccounts);
+            
+  //           // Update count to match the number of accounts
+  //           setCount(newAccounts.length + 1);
+            
+  //           // Set selected values for the first account (for compatibility)
+  //           if (chargeToRows.length > 0) {
+  //             setSelectedCheckNo(chargeToRows[0].checkNumber || '');
+  //             setSelectedCheckAmt(chargeToRows[0].checkAmount || '');
+  //             setSelectedAccountName(chargeToRows[0].accountName || '');
+  //           }
+  //         }
+  //       } catch (error) {
+  //         console.log(error);
+  //       }
+  //     };
+
+  //     fetchSelectedRFPAccounts();
+
+  //     // // Populate ALL existing accounts with check data from the selected RFP
+  //     // setValues2((prev) => {
+  //     //   return prev.map((account, accountIndex) => {
+  //     //     const checkNo = checkNumbers[accountIndex] || '';
+  //     //     const checkAmount = checkAmounts[accountIndex] || '';
+  //     //     const accName = accountName[accountIndex] || '';
+          
+  //     //     console.log(`Populating account ${accountIndex + 1} with:`, {
+  //     //       checkNo,
+  //     //       checkAmount,
+  //     //       accName
+  //     //     });
+          
+  //     //     return {
+  //     //       ...account,
+  //     //       Check_No: checkNo,
+  //     //       Check_Amount: checkAmount,
+  //     //       Account_Name: accName
+  //     //     };
+  //     //   });
+  //     // });
+
+  //     // // Set the selected values for the first account (for compatibility)
+  //     // if (checkNumbers.length > 0 && checkAmounts.length > 0) {
+  //     //   setSelectedCheckNo(checkNumbers[0] || '');
+  //     //   setSelectedCheckAmt(checkAmounts[0] || '');
+  //     //   setSelectedAccountName(accountName[0] || '');
+  //     // }
+  //   } else {
+  //     setSelectedPayee('');
+  //     setSelectedTotalAmnt('');
+  //     setSelectedCheckNo('');
+  //     setSelectedCheckAmt('');
+  //     setSelectedAccountName('');
+  //     setValues((prev) => ({
+  //       ...prev,
+  //       RFP_NO: '',
+  //       Name: '',
+  //       Amount: '',
+  //     }));
+      
+  //     // // Clear ALL accounts
+  //     // setValues2((prev) => {
+  //     //   return prev.map((account) => ({
+  //     //     ...account,
+  //     //     Check_No: '',
+  //     //     Check_Amount: '',
+  //     //     Account_Name: '',
+  //     //     Credit_Amount: '',
+  //     //   }));
+  //     // });
+
+  //     setValues2([{
+  //       Account_ID:"",
+  //       Account_Name:"",
+  //       Debit_Amount:"",
+  //       Credit_Amount:"",
+  //       Check_No:"",
+  //       Check_Amount:"", 
+  //     }]);
+
+  //     setCount(2); // Reset count to 2 since we cleared accounts
+  //   }
+  // };
+
   const handleSelectedRFP = (e) => {
-    const selectedValue = e.target.value;
-    setSelectedRFP(selectedValue);
+  const selectedValue = e.target.value;
+  setSelectedRFP(selectedValue);
 
-    const index = attributes.findIndex((rfp) => rfp === selectedValue);
+  const index = attributes.findIndex((rfp) => rfp === selectedValue);
 
+<<<<<<< Updated upstream
     if (index !== -1) {
       setSelectedPayee(payee[index]);
       setSelectedTotalAmnt(totalAmnt[index]);
@@ -182,6 +311,92 @@ function PaymentVoucher() {
         }));
       });
     }
+=======
+  if (index !== -1) {
+    setSelectedPayee(payee[index]);
+    setSelectedTotalAmnt(totalAmnt[index]);
+    
+    setValues((prev) => ({
+      ...prev,
+      RFP_NO: selectedValue,
+      Name: payee[index],
+      Amount: totalAmnt[index],
+    }));
+
+    // Find the selected RFP's CHARGETO_ROWS to determine how many accounts to create
+    const fetchSelectedRFPAccounts = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(firestore, "Request for Payment"));
+        const selectedRFPData = querySnapshot.docs.find(doc => doc.data().RFP_NO === selectedValue);
+        
+        if (selectedRFPData && selectedRFPData.data().CHARGETO_ROWS) {
+          const chargeToRows = selectedRFPData.data().CHARGETO_ROWS;
+          console.log("Selected RFP CHARGETO_ROWS:", chargeToRows);
+          
+          // Create accounts array based on the number of CHARGETO_ROWS
+          const newAccounts = chargeToRows.map((row, accountIndex) => ({
+            Account_ID: "",
+            Account_Name: row.accountName || '',
+            Debit_Amount: "",
+            Credit_Amount: "",
+            Check_No: row.checkNumber || '',
+            Check_Amount: row.checkAmount || '',
+          }));
+          
+          console.log("Creating accounts:", newAccounts);
+          setValues2(newAccounts);
+          
+          // Update count to match the number of accounts
+          setCount(newAccounts.length + 1);
+          
+          // Set selected values for the first account (for compatibility)
+          if (chargeToRows.length > 0) {
+            setSelectedCheckNo(chargeToRows[0].checkNumber || '');
+            setSelectedCheckAmt(chargeToRows[0].checkAmount || '');
+            setSelectedAccountName(chargeToRows[0].accountName || '');
+          }
+        }
+      } catch (error) {
+        console.log("Error fetching RFP accounts:", error);
+      }
+    };
+
+    fetchSelectedRFPAccounts();
+
+  } else {
+    setSelectedPayee('');
+    setSelectedTotalAmnt('');
+    setSelectedCheckNo('');
+    setSelectedCheckAmt('');
+    setSelectedAccountName('');
+    setValues((prev) => ({
+      ...prev,
+      RFP_NO: '',
+      Name: '',
+      Amount: '',
+    }));
+    
+    // Reset to single empty account
+    setValues2([{
+      Account_ID: "",
+      Account_Name: "",
+      Debit_Amount: "",
+      Credit_Amount: "",
+      Check_No: "",
+      Check_Amount: "",
+    }]);
+    setCount(2);
+  }
+};
+
+  // Create this helper function at the top of your component
+  const getCurrentLocalDate = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+>>>>>>> Stashed changes
   };
 
   //Automatically assign PV_NO when the component mounts
@@ -194,7 +409,11 @@ function PaymentVoucher() {
   useEffect(() => {
     setValues2(prev => prev.map(account => ({
       ...account,
+<<<<<<< Updated upstream
       Date_Recorded: new Date().toISOString().split("T")[0] // today's date
+=======
+      Date_Recorded: getCurrentLocalDate() //Today's Date
+>>>>>>> Stashed changes
     })));
   }, []);
 
@@ -209,7 +428,7 @@ function PaymentVoucher() {
     Date_Paid: "",
     PV_Status: "Forwarded",
     Recorded_By: "Barry Simmons",
-    Date_Recorded: new Date().toISOString().split("T")[0] // today's date
+    Date_Recorded: getCurrentLocalDate() //Today's Date
   });
 
   const [values2, setValues2] = useState([
@@ -367,7 +586,7 @@ function PaymentVoucher() {
       Date_Paid: "",
       PV_Status: "Forwarded",
       Recorded_By: "Barry Simmons",
-      Date_Recorded: new Date().toISOString().split("T")[0] // today's date
+      Date_Recorded: getCurrentLocalDate() //Today's Date
     });
 
     setValues2([
@@ -426,6 +645,7 @@ function PaymentVoucher() {
   return (
     <>
       <Navbar />
+<<<<<<< Updated upstream
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-6 max-w-4xl">
           {/* Header Section */}
@@ -439,6 +659,207 @@ function PaymentVoucher() {
               Go Back
             </Button>
           </div>
+=======
+      <div className="print-area max-w-4xl mx-auto bg-white shadow-lg border-none mt-16 p-10 rounded-lg">
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Payment Voucher</h2>
+
+          {/* PV No and RFP No (two columns) */}
+          <div className="flex flex-wrap items-center gap-6 mb-4">
+            <label htmlFor="pvno" className="w-24 font-semibold text-gray-700">PV No:</label>
+            <input type="text" name="PV_NO" className="flex-1 px-3 py-2 border rounded bg-gray-100" value={values.PV_NO}
+              onChange={handleChanges} required disabled />
+            <label htmlFor="rfpno" className="w-24 font-semibold text-gray-700">RFP No:</label>
+            <select type="text" name="RFP_NO" id="rfpno" className="flex-1 px-3 py-2 border rounded" value={selectedRFP} onChange={handleSelectedRFP}>
+              <option value="">Select RFP</option>
+              {attributes.map((rfp, index) => (
+                <option key={index} value={rfp}> {rfp} </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Payee (single column, aligned) */}
+          <div className="flex items-center gap-6 mb-4">
+            <label htmlFor="name" className="w-24 font-semibold text-gray-700">Payee:</label>
+            <input type="text" name="Name"
+              onChange={handleChanges} value={selectedPayee} required disabled
+              className="flex-1 px-3 py-2 border rounded bg-gray-100" />
+          </div>
+
+          {/* Total Amount (single column, aligned) */}
+          <div className="flex items-center gap-6 mb-4">
+            <label htmlFor="amount" className="w-24 font-semibold text-gray-700">Total Amount:</label>
+            <input type="text" name="Amount" className="flex-1 px-3 py-2 border rounded bg-gray-100"
+              onChange={handleChanges} value={selectedTotalAmnt} required disabled />
+          </div>
+
+          {/* Date Paid (single column, aligned with above) */}
+          <div className="flex items-center gap-6 mb-4">
+            <label htmlFor="date" className="w-24 font-semibold text-gray-700">Date Paid:</label>
+            <input type="date" name="Date_Paid" className="flex-1 px-3 py-2 border rounded"
+              onChange={handleChanges} min={new Date().toISOString().split("T")[0]} value={values.Date_Paid} required />
+          </div>
+
+          {/* Purpose (single column, aligned) */}
+          <div className="flex items-center gap-6 mb-4">
+            <label htmlFor="purpose" className="w-24 font-semibold text-gray-700">Purpose:</label>
+            <select name="Purpose" id="purpose" className="flex-1 px-3 py-2 border rounded" onChange={handleChanges} value={values.Purpose} required>
+              <option value="">Select Purpose</option>
+              <option value="Purchase Goods">Purchase Goods</option>
+              <option value="Service Payment">Service Payment</option>
+              <option value="Rent Payment">Rent Payment</option>
+              <option value="Utility Bills">Utility Bills</option>
+              <option value="Employee Reimbursement">Employee Reimbursement</option>
+            </select>
+          </div>
+
+          {/* Paid By (single column, aligned) */}
+          <div className="flex items-center gap-6 mb-4">
+            <label htmlFor="paid" className="w-24 font-semibold text-gray-700">Paid By: <span className="italic text-gray-400">*</span></label>
+            <input type="text" name="Paid_By" className="flex-1 px-3 py-2 border rounded"
+              onChange={handleChanges} value={values.Paid_By} required />
+          </div>
+
+          <hr className="my-6" />
+
+          <h2 className="text-xl font-bold mb-4 text-gray-700">Bookkeeping/Accounting</h2>
+
+          {values2.map((account, index) => (
+            <div key={index} className="bg-gray-100 border-2 border-gray-300 p-6 rounded mb-4">
+              <div className="mb-2 font-semibold text-gray-700">Account {index + 1}</div>
+              <div className="flex flex-wrap items-center gap-6 mb-2">
+                <label htmlFor={`account-${index}`} className="w-32 font-semibold text-gray-700">Account No:</label>
+                <input
+                  type="number"
+                  name="Account_ID"
+                  className="flex-1 px-3 py-2 border rounded no-spinner"
+                  value={account.Account_ID}
+                  onChange={(e) => handleChanges2(e, index)}
+                  required
+                />
+                <label htmlFor={`debit-${index}`} className="w-32 font-semibold text-gray-700">Debit Amount:</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  name="Debit_Amount"
+                  className="flex-1 px-3 py-2 border rounded no-spinner"
+                  value={account.Debit_Amount ?? ""}
+                  onKeyDown={(e) => {
+                    const value = e.target.value || "";
+                    
+                    // Allow only numbers and decimal point
+                    if(
+                      (e.key === 'Backspace' || 
+                        e.key === 'Delete' || 
+                        e.key === 'Tab' ||
+                        e.key.startsWith('Arrow'))
+                    ){
+                      return; //Dont block these keys
+                    }
+                    
+                    //Only allow one decimal point
+                    if(e.key === '.' && value.includes('.')) {
+                      e.preventDefault();
+                      return;
+                    }
+
+                    //Block anything that is not a number or decimal point
+                    if(!/[0-9.]/.test(e.key)) {
+                      e.preventDefault(); 
+                    }
+                  }}
+                  onChange={(e) => handleChanges2(e, index)}
+                  placeholder="0"
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-6 mb-2">
+                <label htmlFor={`accountname-${index}`} className="w-32 font-semibold text-gray-700">Account Name:</label>
+                <input
+                  type="text"
+                  name="Account_Name"
+                  className="flex-1 px-3 py-2 border rounded"
+                  value={index === 0 ? (selectedAccountName || account.Account_Name) : account.Account_Name}
+                  onChange={(e) => handleChanges2(e, index)}
+                  required
+                />
+                <label htmlFor={`credit-${index}`} className="w-32 font-semibold text-gray-700">Credit Amount:</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  name="Credit_Amount"
+                  className="flex-1 px-3 py-2 border rounded no-spinner"
+                  value={account.Credit_Amount ?? ""}
+                  onKeyDown={(e) => {
+                    const value = e.target.value || "";
+
+                    // Allow only numbers and decimal point
+                    if(
+                      (e.key === 'Backspace' || 
+                        e.key === 'Delete' || 
+                        e.key === 'Tab' ||
+                        e.key.startsWith('Arrow'))
+                    ){
+                      return; //Dont block these keys
+                    }
+                    
+                    //Only allow one decimal point
+                    if(e.key === '.' && value.includes('.')) {
+                      e.preventDefault();
+                      return;
+                    }
+
+                    //Block anything that is not a number or decimal point
+                    if(!/[0-9.]/.test(e.key)) {
+                      e.preventDefault(); 
+                    }
+                  }}
+                  onChange={(e) => handleChanges2(e, index)}
+                  placeholder="0"
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-6">
+                <label htmlFor={`checkno-${index}`} className="w-32 font-semibold text-gray-700">Check No:</label>
+                {/* <select
+                  name="Check_No"
+                  id={`checkno-${index}`}
+                  className="flex-1 px-3 py-2 border rounded"
+                  value={index === 0 ? (selectedCheckNo || account.Check_No) : account.Check_No}
+                  onChange={(e) => handleChanges2(e, index)}
+                >
+                  <option value="">Select Check</option>
+                  {checkNumbers.map((checkNo, idx) => (
+                    <option key={idx} value={checkNo}>{checkNo}</option>
+                  ))}
+                </select> */}
+
+                <input 
+                name="Check_No" 
+                className="flex-1 px-3 py-2 border rounded"
+                value={index === 0 ? (selectedCheckNo || account.Check_No) : account.Check_No}
+                 onChange={(e) => handleChanges2(e, index)}
+                 disabled
+                 />
+                <label htmlFor={`checkamt-${index}`} className="w-32 font-semibold text-gray-700">Check Amount:</label>
+                <input
+                  type="text"
+                  name="Check_Amount"
+                  className="flex-1 px-3 py-2 border rounded bg-gray-100"
+                  value={index === 0 ? (selectedCheckAmt || account.Check_Amount) : account.Check_Amount}
+                  onChange={(e) => handleChanges2(e, index)}
+                  disabled
+                />
+              </div>
+            </div>
+          ))}
+
+          {/** Add Account buttons section (Do not remove!!!) */}
+          {/* <div className="flex gap-4 mb-4">
+            <button type="button" className="px-6 py-2 rounded bg-green-200 hover:bg-green-300 font-semibold" onClick={addElement}>Add Account</button>
+            <button type="button" className="px-6 py-2 rounded bg-red-200 hover:bg-red-300 font-semibold" onClick={removeElement} disabled={values2.length <= 1}>Remove Account</button>
+          </div> */}
+>>>>>>> Stashed changes
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information Card */}
@@ -508,6 +929,7 @@ function PaymentVoucher() {
                   </div>
                 </div>
 
+<<<<<<< Updated upstream
                 {/* Date Paid and Purpose */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -539,6 +961,11 @@ function PaymentVoucher() {
                     </select>
                   </div>
                 </div>
+=======
+          <div className="flex gap-4 justify-end">
+            <button type="button" className="px-6 py-2 rounded bg-gray-300 hover:bg-gray-400 font-semibold cursor-pointer" onClick={() => navigate('/')}>Cancel</button>
+            <button type="submit" className="px-6 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 font-semibold cursor-pointer">Save</button>
+>>>>>>> Stashed changes
 
                 {/* Paid By */}
                 <div className="space-y-2">
