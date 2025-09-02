@@ -42,6 +42,11 @@ function PaymentVoucher() {
         id: doc.id,
         ...doc.data()
       }));
+    //   //Filter out data by status if "Approved" or "Rejected"
+    //  .filter((doc) => {
+    //    const status = doc.data().STATUS;
+    //    return status === "Approved" || status === "Rejected";
+    //  });
 
       const rfpvalues = dataList.map(dataList => dataList.RFP_NO);
       const payeeName = dataList.map(dataList => dataList.PAYEE);
@@ -247,71 +252,6 @@ function PaymentVoucher() {
 
   const index = attributes.findIndex((rfp) => rfp === selectedValue);
 
-<<<<<<< Updated upstream
-    if (index !== -1) {
-      setSelectedPayee(payee[index]);
-      setSelectedTotalAmnt(totalAmnt[index]);
-
-      // For the main form, we don't set check data since it should be in accounts
-      setValues((prev) => ({
-        ...prev,
-        RFP_NO: selectedValue,
-        Name: payee[index],
-        Amount: totalAmnt[index],
-      }));
-
-      // Populate ALL existing accounts with check data from the selected RFP
-      setValues2((prev) => {
-        return prev.map((account, accountIndex) => {
-          const checkNo = checkNumbers[accountIndex] || '';
-          const checkAmount = checkAmounts[accountIndex] || '';
-          const accName = accountName[accountIndex] || '';
-
-          console.log(`Populating account ${accountIndex + 1} with:`, {
-            checkNo,
-            checkAmount,
-            accName
-          });
-
-          return {
-            ...account,
-            Check_No: checkNo,
-            Check_Amount: checkAmount,
-            Account_Name: accName
-          };
-        });
-      });
-
-      // Set the selected values for the first account (for compatibility)
-      if (checkNumbers.length > 0 && checkAmounts.length > 0) {
-        setSelectedCheckNo(checkNumbers[0] || '');
-        setSelectedCheckAmt(checkAmounts[0] || '');
-        setSelectedAccountName(accountName[0] || '');
-      }
-    } else {
-      setSelectedPayee('');
-      setSelectedTotalAmnt('');
-      setSelectedCheckNo('');
-      setSelectedCheckAmt('');
-      setSelectedAccountName('');
-      setValues((prev) => ({
-        ...prev,
-        RFP_NO: '',
-        Name: '',
-        Amount: '',
-      }));
-
-      // Clear ALL accounts
-      setValues2((prev) => {
-        return prev.map((account) => ({
-          ...account,
-          Check_No: '',
-          Check_Amount: '',
-          Account_Name: ''
-        }));
-      });
-    }
-=======
   if (index !== -1) {
     setSelectedPayee(payee[index]);
     setSelectedTotalAmnt(totalAmnt[index]);
@@ -396,7 +336,6 @@ function PaymentVoucher() {
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
->>>>>>> Stashed changes
   };
 
   //Automatically assign PV_NO when the component mounts
@@ -409,11 +348,7 @@ function PaymentVoucher() {
   useEffect(() => {
     setValues2(prev => prev.map(account => ({
       ...account,
-<<<<<<< Updated upstream
-      Date_Recorded: new Date().toISOString().split("T")[0] // today's date
-=======
       Date_Recorded: getCurrentLocalDate() //Today's Date
->>>>>>> Stashed changes
     })));
   }, []);
 
@@ -496,9 +431,22 @@ function PaymentVoucher() {
     });
   };
 
+  //Confirmation message before saving payment voucher
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingSubmitData, setPendingSubmitData] = useState(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Store the current form data in state
+    setPendingSubmitData(e);
+    setShowConfirmDialog(true);
+  };
+
+  const confirmSave = async () => {
+    if(!pendingSubmitData) return;
+    
     const paymentCollectionRef = collection(firestore, collectionName);
     const snapshot = await getDocs(paymentCollectionRef);
     const existingIds = snapshot.docs.map((doc) => parseInt(doc.id.split('-')[1], 10)).filter((id) => !isNaN(id));
@@ -546,33 +494,59 @@ function PaymentVoucher() {
       //Save everything in one document
       await setDoc(doc(firestore, collectionName, paymentDocId), updatedValues);
       console.log("Payment Voucher saved successfully!");
-      toast.success("Payment Voucher saved successfully!");
+
+      try {
+        const { PV_NO, Name, Amount, Date_Paid } = updatedValues;
+        const docRef = doc(firestore, "Payments Logbook", `Cash_Check_Logs ${nextId}`);
+
+        await setDoc(docRef, {
+          PV_NO: PV_NO,
+          Payee: Name,
+          Amount: Amount,
+          Mode: "Check",
+          Date: Date_Paid,
+          Status: "Pending"
+        });
+
+        console.log("Payment Log saved successfully!");
+      } catch (error) {
+        console.error("Error saving Payment Logs: ", error);
+        toast.error("Error saving payment logs");
+      }
+
+      // Close confirmation dialog and show success dialog
+      setShowConfirmDialog(false);
+      setPendingSubmitData(null);
+      setShowSuccessDialog(true);
+
     } catch (e) {
       console.log(e);
       toast.error("Error saving payment voucher");
+      
+      // Close confirmation dialog on error
+      setShowConfirmDialog(false);
+      setPendingSubmitData(null);
     }
+  };
 
-    try {
-      const { PV_NO, Name, Amount, Date_Paid } = updatedValues;
-      const docRef = doc(firestore, "Payments Logbook", `Cash_Check_Logs ${nextId}`);
+  const cancelSave = () => {
+    setShowConfirmDialog(false);
+    setPendingSubmitData(null);
+  };
 
-      await setDoc(docRef, {
-        PV_NO: PV_NO,
-        Payee: Name,
-        Amount: Amount,
-        Mode: "Check",
-        Date: Date_Paid,
-        Status: "Pending"
-      });
+  const handleViewRecords = () => {
+    setShowSuccessDialog(false);
+    navigate('/payment-voucher-table');
+  };
 
-      console.log("Payment Log saved successfully!");
-      toast.success("Payment Logs saved successfully");
-    } catch (error) {
-      console.error("Error saving Payment Logs: ", error);
-      toast.error("Error saving payment logs");
-    }
+  const handleCreateAnother = () => {
+    setShowSuccessDialog(false);
+    resetForm(formattedPVNo());
+    toast.success("Ready to create a new payment voucher");
+  };
 
-    resetForm(generatedPVNo);
+  const closeSuccessDialog = () => {
+    setShowSuccessDialog(false);
   };
 
   const resetForm = (generatedPVNo) => {
@@ -645,223 +619,13 @@ function PaymentVoucher() {
   return (
     <>
       <Navbar />
-<<<<<<< Updated upstream
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-6 max-w-4xl">
-          {/* Header Section */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">Payment Voucher</h1>
-              <p className="text-muted-foreground">Create and manage payment vouchers for various transactions</p>
-            </div>
-            <Button variant="outline" onClick={() => navigate('/')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Go Back
-            </Button>
-          </div>
-=======
       <div className="print-area max-w-4xl mx-auto bg-white shadow-lg border-none mt-16 p-10 rounded-lg">
         <form className="space-y-6" onSubmit={handleSubmit}>
           <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Payment Voucher</h2>
 
-          {/* PV No and RFP No (two columns) */}
-          <div className="flex flex-wrap items-center gap-6 mb-4">
-            <label htmlFor="pvno" className="w-24 font-semibold text-gray-700">PV No:</label>
-            <input type="text" name="PV_NO" className="flex-1 px-3 py-2 border rounded bg-gray-100" value={values.PV_NO}
-              onChange={handleChanges} required disabled />
-            <label htmlFor="rfpno" className="w-24 font-semibold text-gray-700">RFP No:</label>
-            <select type="text" name="RFP_NO" id="rfpno" className="flex-1 px-3 py-2 border rounded" value={selectedRFP} onChange={handleSelectedRFP}>
-              <option value="">Select RFP</option>
-              {attributes.map((rfp, index) => (
-                <option key={index} value={rfp}> {rfp} </option>
-              ))}
-            </select>
-          </div>
+ 
 
-          {/* Payee (single column, aligned) */}
-          <div className="flex items-center gap-6 mb-4">
-            <label htmlFor="name" className="w-24 font-semibold text-gray-700">Payee:</label>
-            <input type="text" name="Name"
-              onChange={handleChanges} value={selectedPayee} required disabled
-              className="flex-1 px-3 py-2 border rounded bg-gray-100" />
-          </div>
-
-          {/* Total Amount (single column, aligned) */}
-          <div className="flex items-center gap-6 mb-4">
-            <label htmlFor="amount" className="w-24 font-semibold text-gray-700">Total Amount:</label>
-            <input type="text" name="Amount" className="flex-1 px-3 py-2 border rounded bg-gray-100"
-              onChange={handleChanges} value={selectedTotalAmnt} required disabled />
-          </div>
-
-          {/* Date Paid (single column, aligned with above) */}
-          <div className="flex items-center gap-6 mb-4">
-            <label htmlFor="date" className="w-24 font-semibold text-gray-700">Date Paid:</label>
-            <input type="date" name="Date_Paid" className="flex-1 px-3 py-2 border rounded"
-              onChange={handleChanges} min={new Date().toISOString().split("T")[0]} value={values.Date_Paid} required />
-          </div>
-
-          {/* Purpose (single column, aligned) */}
-          <div className="flex items-center gap-6 mb-4">
-            <label htmlFor="purpose" className="w-24 font-semibold text-gray-700">Purpose:</label>
-            <select name="Purpose" id="purpose" className="flex-1 px-3 py-2 border rounded" onChange={handleChanges} value={values.Purpose} required>
-              <option value="">Select Purpose</option>
-              <option value="Purchase Goods">Purchase Goods</option>
-              <option value="Service Payment">Service Payment</option>
-              <option value="Rent Payment">Rent Payment</option>
-              <option value="Utility Bills">Utility Bills</option>
-              <option value="Employee Reimbursement">Employee Reimbursement</option>
-            </select>
-          </div>
-
-          {/* Paid By (single column, aligned) */}
-          <div className="flex items-center gap-6 mb-4">
-            <label htmlFor="paid" className="w-24 font-semibold text-gray-700">Paid By: <span className="italic text-gray-400">*</span></label>
-            <input type="text" name="Paid_By" className="flex-1 px-3 py-2 border rounded"
-              onChange={handleChanges} value={values.Paid_By} required />
-          </div>
-
-          <hr className="my-6" />
-
-          <h2 className="text-xl font-bold mb-4 text-gray-700">Bookkeeping/Accounting</h2>
-
-          {values2.map((account, index) => (
-            <div key={index} className="bg-gray-100 border-2 border-gray-300 p-6 rounded mb-4">
-              <div className="mb-2 font-semibold text-gray-700">Account {index + 1}</div>
-              <div className="flex flex-wrap items-center gap-6 mb-2">
-                <label htmlFor={`account-${index}`} className="w-32 font-semibold text-gray-700">Account No:</label>
-                <input
-                  type="number"
-                  name="Account_ID"
-                  className="flex-1 px-3 py-2 border rounded no-spinner"
-                  value={account.Account_ID}
-                  onChange={(e) => handleChanges2(e, index)}
-                  required
-                />
-                <label htmlFor={`debit-${index}`} className="w-32 font-semibold text-gray-700">Debit Amount:</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  name="Debit_Amount"
-                  className="flex-1 px-3 py-2 border rounded no-spinner"
-                  value={account.Debit_Amount ?? ""}
-                  onKeyDown={(e) => {
-                    const value = e.target.value || "";
-                    
-                    // Allow only numbers and decimal point
-                    if(
-                      (e.key === 'Backspace' || 
-                        e.key === 'Delete' || 
-                        e.key === 'Tab' ||
-                        e.key.startsWith('Arrow'))
-                    ){
-                      return; //Dont block these keys
-                    }
-                    
-                    //Only allow one decimal point
-                    if(e.key === '.' && value.includes('.')) {
-                      e.preventDefault();
-                      return;
-                    }
-
-                    //Block anything that is not a number or decimal point
-                    if(!/[0-9.]/.test(e.key)) {
-                      e.preventDefault(); 
-                    }
-                  }}
-                  onChange={(e) => handleChanges2(e, index)}
-                  placeholder="0"
-                />
-              </div>
-              <div className="flex flex-wrap items-center gap-6 mb-2">
-                <label htmlFor={`accountname-${index}`} className="w-32 font-semibold text-gray-700">Account Name:</label>
-                <input
-                  type="text"
-                  name="Account_Name"
-                  className="flex-1 px-3 py-2 border rounded"
-                  value={index === 0 ? (selectedAccountName || account.Account_Name) : account.Account_Name}
-                  onChange={(e) => handleChanges2(e, index)}
-                  required
-                />
-                <label htmlFor={`credit-${index}`} className="w-32 font-semibold text-gray-700">Credit Amount:</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  name="Credit_Amount"
-                  className="flex-1 px-3 py-2 border rounded no-spinner"
-                  value={account.Credit_Amount ?? ""}
-                  onKeyDown={(e) => {
-                    const value = e.target.value || "";
-
-                    // Allow only numbers and decimal point
-                    if(
-                      (e.key === 'Backspace' || 
-                        e.key === 'Delete' || 
-                        e.key === 'Tab' ||
-                        e.key.startsWith('Arrow'))
-                    ){
-                      return; //Dont block these keys
-                    }
-                    
-                    //Only allow one decimal point
-                    if(e.key === '.' && value.includes('.')) {
-                      e.preventDefault();
-                      return;
-                    }
-
-                    //Block anything that is not a number or decimal point
-                    if(!/[0-9.]/.test(e.key)) {
-                      e.preventDefault(); 
-                    }
-                  }}
-                  onChange={(e) => handleChanges2(e, index)}
-                  placeholder="0"
-                />
-              </div>
-              <div className="flex flex-wrap items-center gap-6">
-                <label htmlFor={`checkno-${index}`} className="w-32 font-semibold text-gray-700">Check No:</label>
-                {/* <select
-                  name="Check_No"
-                  id={`checkno-${index}`}
-                  className="flex-1 px-3 py-2 border rounded"
-                  value={index === 0 ? (selectedCheckNo || account.Check_No) : account.Check_No}
-                  onChange={(e) => handleChanges2(e, index)}
-                >
-                  <option value="">Select Check</option>
-                  {checkNumbers.map((checkNo, idx) => (
-                    <option key={idx} value={checkNo}>{checkNo}</option>
-                  ))}
-                </select> */}
-
-                <input 
-                name="Check_No" 
-                className="flex-1 px-3 py-2 border rounded"
-                value={index === 0 ? (selectedCheckNo || account.Check_No) : account.Check_No}
-                 onChange={(e) => handleChanges2(e, index)}
-                 disabled
-                 />
-                <label htmlFor={`checkamt-${index}`} className="w-32 font-semibold text-gray-700">Check Amount:</label>
-                <input
-                  type="text"
-                  name="Check_Amount"
-                  className="flex-1 px-3 py-2 border rounded bg-gray-100"
-                  value={index === 0 ? (selectedCheckAmt || account.Check_Amount) : account.Check_Amount}
-                  onChange={(e) => handleChanges2(e, index)}
-                  disabled
-                />
-              </div>
-            </div>
-          ))}
-
-          {/** Add Account buttons section (Do not remove!!!) */}
-          {/* <div className="flex gap-4 mb-4">
-            <button type="button" className="px-6 py-2 rounded bg-green-200 hover:bg-green-300 font-semibold" onClick={addElement}>Add Account</button>
-            <button type="button" className="px-6 py-2 rounded bg-red-200 hover:bg-red-300 font-semibold" onClick={removeElement} disabled={values2.length <= 1}>Remove Account</button>
-          </div> */}
->>>>>>> Stashed changes
-
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {/* <form onSubmit={handleSubmit} className="space-y-6"> */}
             {/* Basic Information Card */}
             <Card>
               <CardHeader>
@@ -929,7 +693,6 @@ function PaymentVoucher() {
                   </div>
                 </div>
 
-<<<<<<< Updated upstream
                 {/* Date Paid and Purpose */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -961,11 +724,6 @@ function PaymentVoucher() {
                     </select>
                   </div>
                 </div>
-=======
-          <div className="flex gap-4 justify-end">
-            <button type="button" className="px-6 py-2 rounded bg-gray-300 hover:bg-gray-400 font-semibold cursor-pointer" onClick={() => navigate('/')}>Cancel</button>
-            <button type="submit" className="px-6 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 font-semibold cursor-pointer">Save</button>
->>>>>>> Stashed changes
 
                 {/* Paid By */}
                 <div className="space-y-2">
@@ -1180,8 +938,93 @@ function PaymentVoucher() {
                 Save Payment Voucher
               </Button>
             </div>
-          </form>
-        </div>
+        </form>
+
+        {/* Confirmation Dialog Overlay */}
+        {showConfirmDialog && (
+          <div className="fixed inset-0 bg-[#00000078] flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl border-2 border-gray-200">
+              <div className="flex items-center gap-3 mb-4">
+                <AlertCircle className="w-6 h-6 text-yellow-500" />
+                <h3 className="text-lg font-semibold text-gray-900">Confirm Save</h3>
+              </div>
+              
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to save this Payment Voucher? This action will create a new payment record and cannot be undone.
+              </p>
+              
+              <div className="flex gap-3 justify-end">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={cancelSave}
+                  className="px-4 py-2"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="button" 
+                  onClick={confirmSave}
+                  className="bg-[#263145] hover:bg-[#1a2332] text-white px-4 py-2"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Yes, Save Payment Voucher
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Success Dialog Overlay */}
+        {showSuccessDialog && (
+          <div className="fixed inset-0 bg-[#00000078] flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl border">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Payment Voucher Saved!</h3>
+                  <p className="text-sm text-gray-600">Your payment voucher has been successfully created.</p>
+                </div>
+              </div>
+              
+              <p className="text-gray-600 mb-6">
+                What would you like to do next?
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                <Button 
+                  type="button" 
+                  onClick={handleViewRecords}
+                  className="bg-[#263145] hover:bg-[#1a2332] text-white w-full"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  View Payment Voucher Records
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={handleCreateAnother}
+                  className="w-full"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Another Payment Voucher
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={closeSuccessDialog}
+                  className="w-full text-gray-600"
+                >
+                  Stay on This Page
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <Footer />
     </>

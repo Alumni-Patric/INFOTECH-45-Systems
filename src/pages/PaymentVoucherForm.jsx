@@ -62,7 +62,9 @@ function PaymentVoucherForm() {
   }, [id]);
 
   const handlePrint = () => {
-    window.print();
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   const handleBack = () => {
@@ -131,10 +133,10 @@ function PaymentVoucherForm() {
         <Navbar />
       </div>
 
-      <div className="min-h-screen bg-background">
+      <div className="print min-h-screen bg-background">
         <div className="container mx-auto px-4 py-6 max-w-4xl">
           {/* Header Section - Hidden in Print */}
-          <div className="print:hidden flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
             <div className="space-y-1">
               <h1 className="text-3xl font-bold tracking-tight text-foreground">Payment Voucher Details</h1>
               <p className="text-muted-foreground">View and print payment voucher information</p>
@@ -152,217 +154,220 @@ function PaymentVoucherForm() {
           </div>
 
           {/* Payment Voucher Document */}
-          <Card className="shadow-lg border-2 border-black print:shadow-none print:border-2 print:border-black print:rounded-none print:mt-0 print:mb-0 print:max-w-none print:mx-0">
-            <CardContent className="p-8 print:p-6">
-              {/* Header Section */}
-              <div className="flex justify-between items-start mb-8 pb-4 border-b-2 border-black">
-                {/* Company Info */}
-                <div className="flex items-center">
-                  <div className="w-16 h-16 border-2 border-black flex items-center justify-center mr-4 text-2xl">
-                    <img src={Logo} alt="Company Logo" className="w-full h-full object-cover" />
+          <div className="print-area">
+            <Card className="shadow-lg border-2 border-black print:shadow-none print:border-2 print:border-black print:rounded-none print:mt-0 print:mb-0 print:max-w-none print:mx-0">
+              <CardContent className="p-8 print:p-6">
+                {/* Header Section */}
+                <div className="flex justify-between items-start mb-8 pb-4 border-b-2 border-black">
+                  {/* Company Info */}
+                  <div className="flex items-center">
+                    <div className="w-16 h-16 border-2 border-black flex items-center justify-center mr-4 text-2xl">
+                      <img src={Logo} alt="Company Logo" className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-lg">Galanter & Jones SLA. Inc.</div>
+                      <div className="text-sm italic text-muted-foreground">Heated Outdoor Furniture</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-bold text-lg">Galanter & Jones SLA. Inc.</div>
-                    <div className="text-sm italic text-muted-foreground">Heated Outdoor Furniture</div>
+
+                  {/* Title */}
+                  <div className="text-center">
+                    <h1 className="text-3xl font-bold">Payment Voucher</h1>
+                  </div>
+
+                  {/* Voucher Numbers */}
+                  <div className="text-right">
+                    <div className="mb-3">
+                      <span className="font-bold">PV No: </span>
+                      <span className="border-b border-black px-2 py-1 inline-block min-w-[120px]">
+                        {voucherData.PV_NO || ''}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-bold">RFP No: </span>
+                      <span className="border-b border-black px-2 py-1 inline-block min-w-[120px]">
+                        {voucherData.RFP_NO || ''}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Title */}
-                <div className="text-center">
-                  <h1 className="text-3xl font-bold">Payment Voucher</h1>
-                </div>
-
-                {/* Voucher Numbers */}
-                <div className="text-right">
-                  <div className="mb-3">
-                    <span className="font-bold">PV No: </span>
-                    <span className="border-b border-black px-2 py-1 inline-block min-w-[120px]">
-                      {voucherData.PV_NO || ''}
+                {/* Payee Section */}
+                <div className="mb-6">
+                  <div className="flex items-center">
+                    <span className="font-bold mr-4 min-w-[80px]">Payee:</span>
+                    <span className="border-b border-black flex-1 ml-10 px-2 py-1">
+                      {voucherData.Name || ''}
                     </span>
                   </div>
-                  <div>
-                    <span className="font-bold">RFP No: </span>
-                    <span className="border-b border-black px-2 py-1 inline-block min-w-[120px]">
-                      {voucherData.RFP_NO || ''}
+                </div>
+
+                {/* Total Amount Section */}
+                <div className="mb-6">
+                  <div className="flex items-center">
+                    <span className="font-bold mr-4 min-w-[120px]">Total Amount:</span>
+                    <span className="border-b border-black flex-1 px-2 py-1">
+                      {voucherData.Amount ? `₱${Number(voucherData.Amount).toLocaleString()}` : ''}
                     </span>
                   </div>
                 </div>
-              </div>
 
-              {/* Payee Section */}
-              <div className="mb-6">
-                <div className="flex items-center">
-                  <span className="font-bold mr-4 min-w-[80px]">Payee:</span>
-                  <span className="border-b border-black flex-1 ml-10 px-2 py-1">
-                    {voucherData.Name || ''}
-                  </span>
-                </div>
-              </div>
-
-              {/* Total Amount Section */}
-              <div className="mb-6">
-                <div className="flex items-center">
-                  <span className="font-bold mr-4 min-w-[120px]">Total Amount:</span>
-                  <span className="border-b border-black flex-1 px-2 py-1">
-                    {voucherData.Amount ? `₱${Number(voucherData.Amount).toLocaleString()}` : ''}
-                  </span>
-                </div>
-              </div>
-
-              {/* Purpose Section */}
-              <div className="mb-8">
-                <div className="flex items-center">
-                  <span className="font-bold mr-4 min-w-[80px]">Purpose:</span>
-                  <span className="border-b border-black flex-1 ml-10 px-2 py-1">
-                    {voucherData.Purpose || ''}
-                  </span>
-                </div>
-              </div>
-
-              {/* Signature Section */}
-              <div className="flex w-max justify-between mb-8 space-x-67">
-                {/* Paid By */}
-                <div className="w-80">
-                  <div className="mb-2">
-                    <span className="font-bold">Paid by:</span>
+                {/* Purpose Section */}
+                <div className="mb-8">
+                  <div className="flex items-center">
+                    <span className="font-bold mr-4 min-w-[80px]">Purpose:</span>
+                    <span className="border-b border-black flex-1 ml-10 px-2 py-1">
+                      {voucherData.Purpose || ''}
+                    </span>
                   </div>
-                  <div className="flex justify-center">
+                </div>
+
+                {/* Signature Section */}
+                <div className="flex w-max justify-between mb-8 space-x-67">
+                  {/* Paid By */}
+                  <div className="w-80">
                     <div className="mb-2">
-                      <span className="font-bold">Treasurer</span>
+                      <span className="font-bold">Paid by:</span>
                     </div>
-                    <div className="border-b border-black w-100 ml-16 mb-2">
-                      {voucherData.Paid_By || ''}
+                    <div className="flex justify-center">
+                      <div className="mb-2">
+                        <span className="font-bold">Treasurer</span>
+                      </div>
+                      <div className="border-b border-black w-100 ml-16 mb-2">
+                        {voucherData.Paid_By || ''}
+                      </div>
+                    </div>
+                    <div className="text-sm italic text-center ml-30">
+                      (Signature over printed name)
                     </div>
                   </div>
-                  <div className="text-sm italic text-center ml-30">
-                    (Signature over printed name)
+
+                  {/* Date Paid */}
+                  <div className="w-60">
+                    <div className="mb-2">
+                      <span className="font-bold">Date Paid:</span>
+                    </div>
+                    <div className="border-b border-black px-2 py-1 text-center">
+                      {voucherData.Date_Paid || ''}
+                    </div>
                   </div>
                 </div>
 
-                {/* Date Paid */}
-                <div className="w-60">
-                  <div className="mb-2">
-                    <span className="font-bold">Date Paid:</span>
+                {/* Check Information */}
+                <div className="flex gap-8 mb-8">
+                  <div className="flex items-center">
+                    <span className="font-bold mr-4">Check #:</span>
+                    <span className="border-b border-black px-2 py-1 min-w-[150px]">
+                      {accountingData[0]?.Check_No || ''}
+                    </span>
                   </div>
-                  <div className="border-b border-black px-2 py-1 text-center">
-                    {voucherData.Date_Paid || ''}
+                  <div className="flex items-center">
+                    <span className="font-bold mr-4">Check Amount:</span>
+                    <span className="border-b border-black px-2 py-1 min-w-[150px]">
+                      {accountingData[0]?.Check_Amount ? `₱${Number(accountingData[0].Check_Amount).toLocaleString()}` : ''}
+                    </span>
                   </div>
                 </div>
-              </div>
 
-              {/* Check Information */}
-              <div className="flex gap-8 mb-8">
-                <div className="flex items-center">
-                  <span className="font-bold mr-4">Check #:</span>
-                  <span className="border-b border-black px-2 py-1 min-w-[150px]">
-                    {accountingData[0]?.Check_No || ''}
-                  </span>
+                {/* Accounting Section Header */}
+                <div className="bg-muted text-center font-bold py-3 px-4 border border-black mb-4">
+                  TO BE FILLED UP BY BOOKKEEPER/ACCOUNTING PERSONNEL
                 </div>
-                <div className="flex items-center">
-                  <span className="font-bold mr-4">Check Amount:</span>
-                  <span className="border-b border-black px-2 py-1 min-w-[150px]">
-                    {accountingData[0]?.Check_Amount ? `₱${Number(accountingData[0].Check_Amount).toLocaleString()}` : ''}
-                  </span>
-                </div>
-              </div>
 
-              {/* Accounting Section Header */}
-              <div className="bg-muted text-center font-bold py-3 px-4 border border-black mb-4">
-                TO BE FILLED UP BY BOOKKEEPER/ACCOUNTING PERSONNEL
-              </div>
+                {/* Accounting Table */}
+                <div className="overflow-x-auto mb-8">
+                  <table className="w-full border-collapse border border-black">
+                    <thead>
+                      <tr>
+                        <th className="border border-black px-4 py-2 bg-muted font-bold text-center">
+                          Account No
+                        </th>
+                        <th className="border border-black px-4 py-2 bg-muted font-bold text-center">
+                          Account Name:
+                        </th>
+                        <th className="border border-black px-4 py-2 bg-muted font-bold text-center">
+                          Debit - Amount
+                        </th>
+                        <th className="border border-black px-4 py-2 bg-muted font-bold text-center">
+                          Credit - Amount
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* Filled Rows */}
+                      {accountingData.map((account, index) => (
+                        <tr key={index}>
+                          <td className="border border-black px-4 py-3 text-center">
+                            {account.Account_ID || ''}
+                          </td>
+                          <td className="border border-black px-4 py-3 text-center">
+                            {account.Account_Name || ''}
+                          </td>
+                          <td className="border border-black px-4 py-3 text-center">
+                            {account.Debit_Amount ? `₱${Number(account.Debit_Amount).toLocaleString()}` : ''}
+                          </td>
+                          <td className="border border-black px-4 py-3 text-center">
+                            {account.Credit_Amount ? `₱${Number(account.Credit_Amount).toLocaleString()}` : ''}
+                          </td>
+                        </tr>
+                      ))}
 
-              {/* Accounting Table */}
-              <div className="overflow-x-auto mb-8">
-                <table className="w-full border-collapse border border-black">
-                  <thead>
-                    <tr>
-                      <th className="border border-black px-4 py-2 bg-muted font-bold text-center">
-                        Account No
-                      </th>
-                      <th className="border border-black px-4 py-2 bg-muted font-bold text-center">
-                        Account Name:
-                      </th>
-                      <th className="border border-black px-4 py-2 bg-muted font-bold text-center">
-                        Debit - Amount
-                      </th>
-                      <th className="border border-black px-4 py-2 bg-muted font-bold text-center">
-                        Credit - Amount
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Filled Rows */}
-                    {accountingData.map((account, index) => (
-                      <tr key={index}>
-                        <td className="border border-black px-4 py-3 text-center">
-                          {account.Account_ID || ''}
+                      {/* Empty Rows */}
+                      {Array(Math.max(0, 3 - accountingData.length)).fill().map((_, index) => (
+                        <tr key={`empty-${index}`}>
+                          <td className="border border-black px-4 py-3 h-12"></td>
+                          <td className="border border-black px-4 py-3"></td>
+                          <td className="border border-black px-4 py-3"></td>
+                          <td className="border border-black px-4 py-3"></td>
+                        </tr>
+                      ))}
+
+                      {/* Total Row */}
+                      <tr>
+                        <td className="px-4 py-3 text-right font-bold" colSpan="2">
+                          Total:
                         </td>
-                        <td className="border border-black px-4 py-3 text-center">
-                          {account.Account_Name || ''}
+                        <td className="border px-4 py-3 text-center">
+                          {totalDebitAmount ? `₱${Number(totalDebitAmount).toLocaleString()}` : ''}
                         </td>
-                        <td className="border border-black px-4 py-3 text-center">
-                          {account.Debit_Amount ? `₱${Number(account.Debit_Amount).toLocaleString()}` : ''}
-                        </td>
-                        <td className="border border-black px-4 py-3 text-center">
-                          {account.Credit_Amount ? `₱${Number(account.Credit_Amount).toLocaleString()}` : ''}
+                        <td className=" px-4 py-3 text-center">
+                          {totalCreditAmount ? `₱${Number(totalCreditAmount).toLocaleString()}` : ''}
                         </td>
                       </tr>
-                    ))}
-
-                    {/* Empty Rows */}
-                    {Array(Math.max(0, 3 - accountingData.length)).fill().map((_, index) => (
-                      <tr key={`empty-${index}`}>
-                        <td className="border border-black px-4 py-3 h-12"></td>
-                        <td className="border border-black px-4 py-3"></td>
-                        <td className="border border-black px-4 py-3"></td>
-                        <td className="border border-black px-4 py-3"></td>
-                      </tr>
-                    ))}
-
-                    {/* Total Row */}
-                    <tr>
-                      <td className="px-4 py-3 text-right font-bold" colSpan="2">
-                        Total:
-                      </td>
-                      <td className="border px-4 py-3 text-center">
-                        {totalDebitAmount ? `₱${Number(totalDebitAmount).toLocaleString()}` : ''}
-                      </td>
-                      <td className=" px-4 py-3 text-center">
-                        {totalCreditAmount ? `₱${Number(totalCreditAmount).toLocaleString()}` : ''}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Bottom Signature Section */}
-              <div className="flex justify-between">
-                {/* Recorded By */}
-                <div className="w-80">
-                  <div className="mb-2">
-                    <span className="font-bold">Recorded by:</span>
-                  </div>
-                  <div className="mb-2">
-                    <span className="font-bold">Bookkeeper/Accounting</span>
-                  </div>
-                  <div className="border-b border-black w-64 ml-50 mb-2"></div>
-                  <div className="text-sm italic w-64 text-center ml-49">
-                    (Signature over printed name)
-                  </div>
+                    </tbody>
+                  </table>
                 </div>
 
-                {/* Date Recorded */}
-                <div className="w-60">
-                  <div className="mb-2">
-                    <span className="font-bold">Date Recorded:</span>
+                {/* Bottom Signature Section */}
+                <div className="flex justify-between">
+                  {/* Recorded By */}
+                  <div className="w-80">
+                    <div className="mb-2">
+                      <span className="font-bold">Recorded by:</span>
+                    </div>
+                    <div className="mb-2">
+                      <span className="font-bold">Bookkeeper/Accounting</span>
+                    </div>
+                    <div className="border-b border-black w-64 ml-50 mb-2"></div>
+                    <div className="text-sm italic w-64 text-center ml-49">
+                      (Signature over printed name)
+                    </div>
                   </div>
-                  <div className="border-b border-black px-2 py-1 text-center">
-                    {accountingMetadata.Date_Recorded || accountingData[0]?.Date_Recorded || ''}
+
+                  {/* Date Recorded */}
+                  <div className="w-60">
+                    <div className="mb-2">
+                      <span className="font-bold">Date Recorded:</span>
+                    </div>
+                    <div className="border-b border-black px-2 py-1 text-center">
+                      {accountingMetadata.Date_Recorded || accountingData[0]?.Date_Recorded || ''}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
+          
         </div>
       </div>
 
